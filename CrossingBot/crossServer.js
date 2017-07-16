@@ -15,10 +15,11 @@ var options = {
   },
   channels: ["MidnightFreeze", "MuteBard"]
 };
-// --------------
+
 var client = new tmi.client(options);
 var client2 = new tmi.client(options);
 
+//General Chat
 client.connect()
 client.on('join', (channel,username) => console.log(username))
 client.on('chat', (channel, username, message, self) =>{
@@ -28,8 +29,9 @@ client.on('chat', (channel, username, message, self) =>{
 })
 client.on('connected', (address, port) => client.action("MuteBard", "NotLikeThis"));
 
+
+//Whispers
 client2.connect().then((data) => {
-    // Change schmoopiie to your username (not your bot as you can't whisper to yourself)
     client2.whisper("MuteBard", "I am Alive Too");
 }).catch((err) => {
     console.log(err);
