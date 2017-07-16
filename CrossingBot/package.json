@@ -9,6 +9,7 @@
   "author": "mutebard",
   "license": "ISC",
   "dependencies": {
+    "irc": "^0.5.2",
     "tmi.js": "^1.2.1"
   }
 }
