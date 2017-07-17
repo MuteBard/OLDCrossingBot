@@ -2,15 +2,13 @@
 CREATE TABLE viewer()
 id serial primary key,
 username varchar,
+net integer references bug_net(id),
+pole integer references fishing_pole(id),
 level integer,
-bells
+bells integer,
+turnips integer
 
---contains net
---contain pole
---bells
---level
---turnips
---counter
+
 CREATE TABLE bugs()
 id serial primary key,
 name varchar,
@@ -29,23 +27,28 @@ name varchar,
 bells integer,
 months varchar
 
-CREATE TABLE trees()
---id
---fruit
---money
---bees
-CREATE TABLE behaviors()
---id
---rain
---clear skies
+CREATE TABLE bug_net()
+  id serial primary key,
+  trait varchar
 
-
-
-CREATE TABLE weather()
-
-CREATE TABLE bug_nets()
 CREATE TABLE fishing_pole()
+  id serial primary key,
+  trait varchar
 
+INSERT INTO bug_nets VALUES
+  (DEFAULT, "Wooden"),
+  (DEFAULT, "Regular"),
+  (DEFAULT, "Silver"),
+  (DEFAULT, "Gold"),
+  (DEFAULT, "Platinum")
+
+
+INSERT INTO fishing_pole VALUES
+  (DEFAULT, "Wooden"),
+  (DEFAULT, "Regular"),
+  (DEFAULT, "Silver"),
+  (DEFAULT, "Gold"),
+  (DEFAULT, "Platinum")
 
 INSERT INTO bugs VALUES
   (DEFAULT,"Common Butterfly",90,"CDEFI"),
