@@ -1,31 +1,31 @@
 
 CREATE TABLE viewer()
-id serial primary key,
-username varchar,
-net integer references bug_net(id),
-pole integer references fishing_pole(id),
-level integer,
-bells integer,
-turnips integer
-
+  id serial primary key,
+  username varchar,
+  net integer references bug_net(id),
+  pole integer references fishing_pole(id),
+  level integer,
+  bells integer,
+  turnips integer
+  pocket 
 
 CREATE TABLE bugs()
-id serial primary key,
-name varchar,
-bells integer,
-months varchar
+  id serial primary key,
+  name varchar,
+  bells integer,
+  months varchar
 
 CREATE TABLE fish()
-id serial primary key,
-name varchar,
-bells integer,
-months varchar
+  id serial primary key,
+  name varchar,
+  bells integer,
+  months varchar
 
 CREATE TABLE ecosystem()
-id serial primary key,
-name varchar,
-bells integer,
-months varchar
+  id serial primary key,
+  name varchar,
+  bells integer,
+  months varchar
 
 CREATE TABLE bug_net()
   id serial primary key,

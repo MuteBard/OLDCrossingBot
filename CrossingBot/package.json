@@ -9,7 +9,11 @@
   "author": "mutebard",
   "license": "ISC",
   "dependencies": {
+    "bluebird": "^3.5.0",
+    "body-parser": "^1.17.2",
+    "cors": "^2.8.4",
     "irc": "^0.5.2",
+    "pg-promise": "^6.3.5",
     "tmi.js": "^1.2.1"
   }
 }
