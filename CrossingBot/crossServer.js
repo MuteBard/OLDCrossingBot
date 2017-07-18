@@ -1,5 +1,74 @@
-const tmi = require('tmi.js')
-const secret = require('./secret/sealed')
+// const tmi = require('tmi.js');
+const secret = require('./secret/sealed');
+const Promise = require('bluebird');
+const pgp = require('pg-promise')({
+  promiseLib: Promise
+});
+const db = pgp(secret)
+
+
+function Database(){
+  this.animals = []
+}
+
+Database.prototype.setAnimals = function(cb){
+  db.any(`select * from animal where species = $1`, 'bug')
+    .then(data => {
+      cb(data)
+    })
+}
+
+crossbase = new Database()
+var thing = crossbase.setAnimals(function cb(recievedData){
+  console.log(recievedData);
+})
+
+
+// console.log(crossbase.animals)
+// console.log("test2")
+// function something(cb) {
+//   $.ajax({
+//     url: `${ROOT}&${API_KEY}&language=en-US`,
+//     method: ‘GET’
+//   })
+//   .then(function receiveData(data) {
+//     cb(data)
+//   })
+//   .catch(function(e) {
+//     console.log(e.name)
+//   })
+// }
+
+
+
+// let randomData = something((data) => {
+//   console.log(data)
+// })
+//
+// console.log(randomData)
+
+// DataBase Queries:
+//
+// 	Website:
+//
+//
+// 	Twitch:
+//
+// 			Chat:
+// 				-Have ppl pull up their individual turnip timer
+// 				-Have ppl pull up how much money they have
+// 				-Have ppl pull up how much turnips they have
+// 				-Have ppl pull up the status of their net
+// 				-Have ppl pull up the status of their pole
+// 				-Give ppl the ability to buy turnips
+// 				-Give ppl have the ability to sell their stuff
+//
+//
+//
+// 			Whisper:
+// 				-Have ppl pull up what is in their entire pocket + net + poll + turnips
+
+
 
 
 //
