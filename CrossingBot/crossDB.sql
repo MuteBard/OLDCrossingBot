@@ -15,8 +15,10 @@ CREATE TABLE animal(
 );
 CREATE TABLE ecosystem(
   id serial primary key,
-  aid integer references animal(id),
-  month varchar
+  species varchar,
+  name varchar,
+  bells integer,
+  months varchar
 );
 CREATE TABLE viewer(
   id serial primary key,

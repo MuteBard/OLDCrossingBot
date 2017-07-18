@@ -8,8 +8,9 @@ const db = pgp(secret)
 
 
 function Database(){
-  this.animals = []
+  this.monthNumber = 11;
 }
+// Database.prototype.setMonth(){}
 
 Database.prototype.setAnimals = function(cb){
   db.any(`select * from animal where species = $1`, 'bug')
@@ -18,10 +19,38 @@ Database.prototype.setAnimals = function(cb){
     })
 }
 
+Database.prototype.getByMonth = function(cb){
+  var monthList = "ABCDEFGHIJKL".split('');
+  var monthChar = monthList[this.monthNumber];
+  crossbase.setAnimals(recievedData => {
+    animalsOfMonth = recievedData.filter(elem => {
+      return elem.months.indexOf(monthChar) > -1
+    });
+    cb(animalsOfMonth)
+    // console.log(animalsOfMonth)
+  });
+}
+
+Database.prototype.setEcoSystem = function(cb){
+  crossbase.getByMonth(recievedData => {
+    db.none(`DELETE FROM ecosystem`)
+    recievedData.forEach(elem => {
+      db.none(`
+          INSERT INTO ecosystem (species, name, bells, months)
+          VALUES ($1,$2,$3,$4)`,
+          [elem.species, elem.name, elem.bells, elem.months])
+      })
+    cb("SENT")
+  })
+}
+
 crossbase = new Database()
-var thing = crossbase.setAnimals(function cb(recievedData){
-  console.log(recievedData);
-})
+crossbase.setEcoSystem(function cb(recievedData){
+  console.log(recievedData)
+});
+// var thing = crossbase.setAnimals(function cb(recievedData){
+//   console.log(recievedData);
+// })
 
 
 // console.log(crossbase.animals)
