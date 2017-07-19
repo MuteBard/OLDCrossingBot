@@ -8,17 +8,21 @@ const db = pgp(secret)
 
 
 function Database(){
-  this.monthNumber = 11;
+  this.monthNumber = -1;
 }
 // Database.prototype.setMonth(){}
+//be sure to promisify the inserts
 
+
+Database.prototype.setMonth = function(number){
+  crossbase.monthNumber = number;
+}
 Database.prototype.setAnimals = function(cb){
-  db.any(`select * from animal where species = $1`, 'bug')
+  db.any(`select * from animal`)
     .then(data => {
       cb(data)
     })
 }
-
 Database.prototype.getByMonth = function(cb){
   var monthList = "ABCDEFGHIJKL".split('');
   var monthChar = monthList[this.monthNumber];
@@ -30,21 +34,28 @@ Database.prototype.getByMonth = function(cb){
     // console.log(animalsOfMonth)
   });
 }
-
 Database.prototype.setEcoSystem = function(cb){
   crossbase.getByMonth(recievedData => {
     db.none(`DELETE FROM ecosystem`)
     recievedData.forEach(elem => {
       db.none(`
-          INSERT INTO ecosystem (species, name, bells, months)
-          VALUES ($1,$2,$3,$4)`,
-          [elem.species, elem.name, elem.bells, elem.months])
+          INSERT INTO ecosystem (species, name, bells, months, rarity)
+          VALUES ($1,$2,$3,$4,$5)`,
+          [elem.species, elem.name, elem.bells, elem.months, elem.rarity])
       })
-    cb("SENT")
+    cb(`ECOSYSTEM ${crossbase.monthNumber}`)
   })
 }
 
+Database.prototype.addItem = function(cb){
+
+
+}
+
+
+
 crossbase = new Database()
+crossbase.setMonth(7)
 crossbase.setEcoSystem(function cb(recievedData){
   console.log(recievedData)
 });
