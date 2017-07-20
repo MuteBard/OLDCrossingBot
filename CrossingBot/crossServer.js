@@ -58,7 +58,7 @@ Database.prototype.setEcoSystem = function(cb){
       })
     cb(`ECOSYSTEM ${crossbase.monthChar}`)
   })
-}``
+}
 
 function selectRarity(){
   var num = Math.floor((Math.random() * 100) + 1);
@@ -69,42 +69,47 @@ function selectRarity(){
   else                   return 1
 }
 
-// Database.prototype.addPocket = function(cb){
-//   var person = "MuteBard"
-//   db.any(`select * from ecosystem where rarity = $1`, selectRarity())
-//     .then(data => (Math.floor((Math.random() * data.length) + 1))
-//     .then(selected => )
-//     })
-// }
-
 crossbase = new Database()
 crossbase.setMonth(7)
-crossbase.setEcoSystem(function cb(recievedData){});
+crossbase.setEcoSystem(function cb(recievedData){console.log(recievedData)});
 
-// client.on('join', (channel,username) => console.log(username))
-
+//
+// // Database.prototype.addPocket = function(cb){
+// //   var person = "MuteBard"
+// //   db.any(`select * from ecosystem where rarity = $1`, selectRarity())
+// //     .then(data => (Math.floor((Math.random() * data.length) + 1))
+// //     .then(selected => )
+// //     })
+// // }
+//
+//
+//
+// // client.on('join', (channel,username) => console.log(username))
+//
 client.on('chat', (channel, username, message, self) => {
-  if(message.charAt(0) == "!start"){
+  console.log("DATABASE INSERTION START A")
+  if(message == "!start"){
+    console.log("DATABASE INSERTION  B")
     db.none(`
-        INSERT INTO ecosystem (username, net, pole, level, turnips)
-        VALUES ($1,$2,$3,$4,$5)`,
-        [username["display-name"],'Wooden','Wooden', 1, 0])
-    })
+        INSERT INTO viewer (username, net, pole, level, bells, turnips)
+        VALUES ($1, $2, $3, $4, $5, $6)`,
+        [username["display-name"],1, 1, 1, 0, 0])
+    }
+  console.log("DATABASE INSERTION START C")
   client.action(`${username["display-name"]}`, `Welcome ${username["display-name"]}! you have joined the town VoHiYo  `)
   console.log(`${username["display-name"]}`)
-  }
-
-
-
-//Whispers
-client2.connect().then((data) => {
-    client2.whisper("MuteBard", "I am Alive Too");
-}).catch((err) => {
-    console.log(err);
 });
-
-// Send a whisper to your bot to trigger this event..
-// client2.on("whisper", function (user, message) {
-//     console.log(user);
-//     console.log(message);
+//
+//
+// //Whispers
+// client2.connect().then((data) => {
+//     client2.whisper("MuteBard", "I am Alive Too");
+// }).catch((err) => {
+//     console.log(err);
 // });
+//
+// // Send a whisper to your bot to trigger this event..
+// // client2.on("whisper", function (user, message) {
+// //     console.log(user);
+// //     console.log(message);
+// // });
