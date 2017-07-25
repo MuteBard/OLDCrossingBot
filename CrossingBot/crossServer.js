@@ -20,6 +20,7 @@ var options = {
   channels: ["MidnightFreeze", "MuteBard"]
 };
 
+
 var client = new tmi.client(options);
 var client2 = new tmi.client(options);
 client.connect()
@@ -59,6 +60,26 @@ Database.prototype.setEcoSystem = function(cb){
     cb(`ECOSYSTEM ${crossbase.monthChar}`)
   })
 }
+
+Database.prototype.addPocket = function(rare, species){
+  db.any(`SELECT * FROM ECOSYSTEM WHERE rarity = $1 AND species = $2`, rare, species)
+    .then(data => {
+     var itemIndex = selectItem(data.length)
+     return data[itemIndex]
+  }).then( data => {
+     db.none(`INSERT INTO pocket (username, aid)
+     VALUES ($1, $2)`,
+     `${username["display-name"]}`, data.ida)
+     console.log(`${username["display-name"]} NET USED`)
+     return data
+  }).then(data => {
+     client.action(`${username["display-name"]}`, `${username["display-name"]} you have caught a ${data.species}, the ${data.name}`)
+     console.log(`${username["display-name"]} ${data.name} POCKETED`)
+  });
+}
+
+
+
 
 function selectRarity(){
   var num = Math.floor((Math.random() * 100) + 1);
@@ -109,28 +130,12 @@ client.on('chat', (channel, username, message, self) => {
 //dictionaries are optimized for searching
 
 client.on('chat', (channel, username, message, self) => {
-
   if(message == "!use.bugnet" || message == "!use.fishpole"){
     var species
     if(message.slice(5,6) == "b") species = "bug"
     else species = "fish"
     var rare = selectRarity()
-    db.any(`SELECT * FROM ECOSYSTEM WHERE rarity = $1 AND species = $2`, rare, species)
-      .then(data => {
-       var itemIndex = selectItem(data.length)
-       return data[itemIndex]
-    }).then( data => {
-       db.none(`INSERT INTO pocket (username, aid)
-       VALUES ($1, $2)`,
-       `${username["display-name"]}`, data.ida)
-       console.log(`${username["display-name"]} NET USED`)
-       return data
-    }).then(data => {
-       client.action(`${username["display-name"]}`, `${username["display-name"]} you have caught a ${data.species}, the ${data.name}`)
-       console.log(`${username["display-name"]} ${data.name} POCKETED`)
-    }
-
-    );
+    crossbase.addItem(rare, species)
   }
 });
 
