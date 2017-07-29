@@ -76,7 +76,7 @@ Database.prototype.joinGame = function(person, message){
 }
 
 Database.prototype.addPocket = function(person, rare, species){
-  db.any(`SELECT * FROM ECOSYSTEM WHERE rarity=$1 AND species=$2;`, rare, species)
+  db.any(`SELECT * FROM ECOSYSTEM WHERE rarity = $1 AND species = $2;`, [rare, species])
     .then(data => {
      var itemIndex = selectItem(data.length)
      console.log(itemIndex)
