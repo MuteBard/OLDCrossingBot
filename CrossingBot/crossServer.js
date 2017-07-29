@@ -20,7 +20,6 @@ var options = {
   channels: ["MidnightFreeze", "MuteBard"]
 };
 
-
 var client = new tmi.client(options);
 var client2 = new tmi.client(options);
 client.connect()
@@ -61,25 +60,44 @@ Database.prototype.setEcoSystem = function(cb){
   })
 }
 
-Database.prototype.addPocket = function(rare, species){
-  db.any(`SELECT * FROM ECOSYSTEM WHERE rarity = $1 AND species = $2`, rare, species)
+Database.prototype.joinGame = function(person, message){
+  db.none(`
+      INSERT INTO viewer (username, net, pole, level, bells, turnips)
+      VALUES ($1, $2, $3, $4, $5, $6)`,
+      [person,1, 1, 1, 0, 0])
+    .then(() => {
+      client.action(`${person}`, `Welcome ${person}! you have joined the town VoHiYo  `)
+      console.log(`${person} ADDED`)
+    })
+    .catch(() =>{
+      client.action(`${person}`, `you are already in the town ${person}!`)
+      console.log(`${person} DUPLICATE REJECTED`)
+    })
+}
+
+Database.prototype.addPocket = function(person, rare, species){
+  db.any(`SELECT * FROM ECOSYSTEM WHERE rarity=$1 AND species=$2;`, rare, species)
     .then(data => {
      var itemIndex = selectItem(data.length)
+     console.log(itemIndex)
      return data[itemIndex]
   }).then( data => {
-     db.none(`INSERT INTO pocket (username, aid)
-     VALUES ($1, $2)`,
-     `${username["display-name"]}`, data.ida)
-     console.log(`${username["display-name"]} NET USED`)
+     db.none(`INSERT INTO pockets (username, aid)
+              VALUES ($1, $2)`,
+              [person, data.ida])
+     console.log(`${person} NET USED`)
      return data
   }).then(data => {
-     client.action(`${username["display-name"]}`, `${username["display-name"]} you have caught a ${data.species}, the ${data.name}`)
-     console.log(`${username["display-name"]} ${data.name} POCKETED`)
+     client.action(`${person}`, `${person} you have caught a ${data.species}, the ${data.name}`)
+     console.log(`${person} ${data.name} POCKETED`)
   });
 }
 
+function selectSpecies(message){
+  if(message.slice(5,6) == "b") return 'bug'
+  else                          return 'fish'
 
-
+}
 
 function selectRarity(){
   var num = Math.floor((Math.random() * 100) + 1);
@@ -95,47 +113,27 @@ function selectItem(size){
   return num
 }
 
+
 crossbase = new Database()
 crossbase.setMonth(7); //Jan = 0, Feb = 1 ..... Dec = 11
 crossbase.setEcoSystem(function cb(recievedData){console.log(recievedData)});
 
-//
-// // Database.prototype.addPocket = function(cb){
-// //   var person = "MuteBard"
-// //   db.any(`select * from ecosystem where rarity = $1`, selectRarity())
-// //     .then(data => (Math.floor((Math.random() * data.length) + 1))
-// //     .then(selected => )
-// //     })
-// // }
-//
-//
-//
-// // client.on('join', (channel,username) => console.log(username))
-
 //Works but be sure to protect against duplicates later
 client.on('chat', (channel, username, message, self) => {
   if(message == "!start"){
-    db.none(`
-        INSERT INTO viewer (username, net, pole, level, bells, turnips)
-        VALUES ($1, $2, $3, $4, $5, $6)`,
-        [username["display-name"],1, 1, 1, 0, 0])
-      .then(() => {
-        client.action(`${username["display-name"]}`, `Welcome ${username["display-name"]}! you have joined the town VoHiYo  `)
-        console.log(`${username["display-name"]} ADDED`)
-      })
-    }
+    var person = username["display-name"]
+    crossbase.joinGame(person, message)
+  }
 });
 
 //arrays are specialluzed for order
 //dictionaries are optimized for searching
-
 client.on('chat', (channel, username, message, self) => {
-  if(message == "!use.bugnet" || message == "!use.fishpole"){
-    var species
-    if(message.slice(5,6) == "b") species = "bug"
-    else species = "fish"
+  if(message == "!use-bugnet" || message == "!use-fishpole"){
+    var person = username["display-name"]
     var rare = selectRarity()
-    crossbase.addItem(rare, species)
+    var species = selectSpecies(message)
+    crossbase.addPocket(person, rare, species)
   }
 });
 
