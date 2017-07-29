@@ -78,18 +78,23 @@ Database.prototype.joinGame = function(person, message){
 Database.prototype.addPocket = function(person, rare, species){
   db.any(`SELECT * FROM ECOSYSTEM WHERE rarity = $1 AND species = $2;`, [rare, species])
     .then(data => {
-     var itemIndex = selectItem(data.length)
-     console.log(itemIndex)
-     return data[itemIndex]
+       var itemIndex = selectItem(data.length)
+       return data[itemIndex]
   }).then( data => {
      db.none(`INSERT INTO pockets (username, aid)
               VALUES ($1, $2)`,
               [person, data.ida])
-     console.log(`${person} NET USED`)
      return data
   }).then(data => {
      client.action(`${person}`, `${person} you have caught a ${data.species}, the ${data.name}`)
      console.log(`${person} ${data.name} POCKETED`)
+  });
+}
+
+Database.prototype.sellPocket = function(person, rare, species){
+
+  //to be created
+
   });
 }
 
@@ -113,35 +118,50 @@ function selectItem(size){
   return num
 }
 
-
 crossbase = new Database()
 crossbase.setMonth(7); //Jan = 0, Feb = 1 ..... Dec = 11
 crossbase.setEcoSystem(function cb(recievedData){console.log(recievedData)});
 
-//Works but be sure to protect against duplicates later
+
 client.on('chat', (channel, username, message, self) => {
   if(message == "!start"){
     var person = username["display-name"]
     crossbase.joinGame(person, message)
   }
-});
-
-//arrays are specialluzed for order
-//dictionaries are optimized for searching
-client.on('chat', (channel, username, message, self) => {
-  if(message == "!use-bugnet" || message == "!use-fishpole"){
+  else if(message == "!use-bugnet" || message == "!use-fishpole"){
     var person = username["display-name"]
     var rare = selectRarity()
     var species = selectSpecies(message)
     crossbase.addPocket(person, rare, species)
   }
+  else if(message.slice(0,6) == "!sell-"){
+    if(message.slice(6) == "all"){
+      //send all to sellPocket as response to sellPocket
+    }
+    else{
+      var send = true;
+      try{
+        if (Number(message.slice(6)) throw "not a number"
+        if (Number(message.slice(6)) <= 0 && Number(message.slice(6)) >= 143) throw "outside range"
+      }
+      catch(err){
+        send = false;
+        console.log(err)
+        client.action(`${person}`, `${person}, ${message.slice(6)} is not a vaild thing to pocket`)
+      }
+      finally{
+        if (send){
+          Number(message.slice(6))
+          //send value to sellPocket as response
+        }
+      }
+
+    }
+  }
 });
 
-// SELECT * FROM ECOSYSTEM WHERE rarity = 2 AND species = "bug"
 
 
-//
-//
 // //Whispers
 // client2.connect().then((data) => {
 //     client2.whisper("MuteBard", "I am Alive Too");
