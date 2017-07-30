@@ -91,12 +91,13 @@ Database.prototype.addPocket = function(person, rare, species){
   });
 }
 
-Database.prototype.sellPocket = function(person, rare, species){
+Database.prototype.sellPocket = function(person, message){
+  db.any(`SELECT SUM(ecosystem.bells) FROM pockets LEFT OUTER JOIN ecosystem ON ecosystem.ida = pockets.aid `)
+  .then(money => {
+    db.any(`UPDATE viewer SET bells = $1 WHERE username = $2`, [money, person])
+  })
+});
 
-  //to be created
-
-  });
-}
 
 function selectSpecies(message){
   if(message.slice(5,6) == "b") return 'bug'
@@ -134,29 +135,8 @@ client.on('chat', (channel, username, message, self) => {
     var species = selectSpecies(message)
     crossbase.addPocket(person, rare, species)
   }
-  else if(message.slice(0,6) == "!sell-"){
-    if(message.slice(6) == "all"){
-      //send all to sellPocket as response to sellPocket
-    }
-    else{
-      var send = true;
-      try{
-        if (Number(message.slice(6)) throw "not a number"
-        if (Number(message.slice(6)) <= 0 && Number(message.slice(6)) >= 143) throw "outside range"
-      }
-      catch(err){
-        send = false;
-        console.log(err)
-        client.action(`${person}`, `${person}, ${message.slice(6)} is not a vaild thing to pocket`)
-      }
-      finally{
-        if (send){
-          Number(message.slice(6))
-          //send value to sellPocket as response
-        }
-      }
-
-    }
+  else if(message == "!sell-all"){
+    crossbase.sellPocket(person, rare, species)
   }
 });
 
