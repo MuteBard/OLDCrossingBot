@@ -1,11 +1,14 @@
+DROP TABLE IF EXISTS bugnet CASCADE;
 CREATE TABLE bugnet(
   id serial primary key,
   trait varchar
 );
+DROP TABLE IF EXISTS fishingpole CASCADE;
 CREATE TABLE fishingpole(
   id serial primary key,
   trait varchar
 );
+DROP TABLE IF EXISTS animal CASCADE;
 CREATE TABLE animal(
   id serial primary key,
   ida integer UNIQUE,
@@ -15,6 +18,7 @@ CREATE TABLE animal(
   months varchar,
   rarity integer
 );
+DROP TABLE ecosystem CASCADE;
 CREATE TABLE ecosystem(
   id serial primary key,
   ida integer UNIQUE,
@@ -24,20 +28,26 @@ CREATE TABLE ecosystem(
   months varchar,
   rarity integer
 );
+DROP TABLE IF EXISTS viewer CASCADE;
 CREATE TABLE viewer(
   id serial primary key,
   username varchar UNIQUE,
   net integer references bugnet(id),
   pole integer references fishingpole(id),
   level integer,
+  nextlevel integer,
+  totalexp integer,
+  expnextlevel integer,
   bells integer,
   turnips integer
 );
+DROP TABLE IF EXISTS pockets CASCADE;
 CREATE TABLE pockets(
   id serial primary key,
   username varchar,
   aid integer references animal(ida)
 );
+
 
 INSERT INTO bugnet VALUES
   (DEFAULT, 'Wooden'),
@@ -45,6 +55,7 @@ INSERT INTO bugnet VALUES
   (DEFAULT, 'Silver'),
   (DEFAULT, 'Gold'),
   (DEFAULT, 'Platinum');
+
 
 INSERT INTO fishingpole VALUES
   (DEFAULT, 'Wooden'),

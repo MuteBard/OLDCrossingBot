@@ -1,5 +1,6 @@
 const tmi = require('tmi.js');
 const secret = require('./secret/sealed');
+
 const Promise = require('bluebird');
 const pgp = require('pg-promise')({
   promiseLib: Promise
@@ -60,16 +61,17 @@ Database.prototype.setEcoSystem = function(cb){
   })
 }
 
-Database.prototype.joinGame = function(person, message){
+Database.prototype.joinGame = function(person){
   db.none(`
-      INSERT INTO viewer (username, net, pole, level, bells, turnips)
-      VALUES ($1, $2, $3, $4, $5, $6)`,
-      [person,1, 1, 1, 0, 0])
+      INSERT INTO viewer (username, net, pole, level, nextlevel, totalexp, expnextlevel, bells, turnips)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      [person, 1, 1, 1, 2, 0, 1414, 0, 0])
     .then(() => {
       client.action(`${person}`, `Welcome ${person}! you have joined the town VoHiYo  `)
       console.log(`${person} ADDED`)
     })
-    .catch(() =>{
+    .catch((err) =>{
+      console.log(err)
       client.action(`${person}`, `you are already in the town ${person}!`)
       console.log(`${person} DUPLICATE REJECTED`)
     })
@@ -91,18 +93,28 @@ Database.prototype.addPocket = function(person, rare, species){
   });
 }
 
-Database.prototype.sellPocket = function(person, message){
-  db.any(`SELECT SUM(ecosystem.bells) FROM pockets LEFT OUTER JOIN ecosystem ON ecosystem.ida = pockets.aid `)
-  .then(money => {
-    db.any(`UPDATE viewer SET bells = $1 WHERE username = $2`, [money, person])
+Database.prototype.sellPocket = function(person){
+  console.log(person)
+  console.log("sdaddad")
+  db.any(`SELECT SUM(ecosystem.bells) FROM pockets LEFT OUTER JOIN ecosystem ON ecosystem.ida = pockets.aid WHERE username = $1`, [person])
+  .then(data => {
+      var bells = data[0].sum
+      db.any(`UPDATE viewer SET bells = $1 WHERE username = $2`, [bells, person])
+      return bells
   })
-});
+  .then((bells) => {
+      client.action(`${person}`, `${person} you have gained ${bells} bells`)
+      console.log(`${person} ${bells} GAINED`)  
+})
+};
 
+// Database.prototype.updateEXP = function(person, bells){
+//   //test
+// }
 
 function selectSpecies(message){
   if(message.slice(5,6) == "b") return 'bug'
   else                          return 'fish'
-
 }
 
 function selectRarity(){
@@ -119,15 +131,32 @@ function selectItem(size){
   return num
 }
 
+//update to total experience
+function expGain(bells){
+  exp = bells / 10
+  return exp
+}
+
+//Take in a level and return the amount of exp
+function levelToExp(level){
+  var expAtLevel = Math.floor(Math.sqrt(Math.pow(2,level)) * 1000)
+  console.log(`LEVEL : ${level}  EXP : ${expAtLevel}`)
+}
+
+//Take in exp and return a level
+function expToLevel(exp){
+  var level = Math.log2(Math.pow((exp/ 1000),2))
+  console.log(`LEVEL : ${level}  EXP : ${exp}`)
+}
+
 crossbase = new Database()
 crossbase.setMonth(7); //Jan = 0, Feb = 1 ..... Dec = 11
 crossbase.setEcoSystem(function cb(recievedData){console.log(recievedData)});
 
-
 client.on('chat', (channel, username, message, self) => {
+  var person = username["display-name"]
   if(message == "!start"){
-    var person = username["display-name"]
-    crossbase.joinGame(person, message)
+    crossbase.joinGame(person)
   }
   else if(message == "!use-bugnet" || message == "!use-fishpole"){
     var person = username["display-name"]
@@ -136,7 +165,7 @@ client.on('chat', (channel, username, message, self) => {
     crossbase.addPocket(person, rare, species)
   }
   else if(message == "!sell-all"){
-    crossbase.sellPocket(person, rare, species)
+    crossbase.sellPocket(person)
   }
 });
 
@@ -154,3 +183,15 @@ client.on('chat', (channel, username, message, self) => {
 // //     console.log(user);
 // //     console.log(message);
 // // });
+
+
+
+//take in their current level
+//take in their current exp
+
+//check their exp to the next level
+//add a next level column
+
+//subtract current experience by the amount needed to reach the next level
+
+//update viewer table to view total experience, experience to next level and the next level
