@@ -78,9 +78,10 @@ Database.prototype.joinGame = function(person){
 }
 
 Database.prototype.addPocket = function(person, rare, species){
-  db.any(`SELECT * FROM ECOSYSTEM WHERE rarity = $1 AND species = $2;`, [rare, species])
+  db.any(`SELECT * FROM ECOSYSTEM WHERE rarity = $1 AND species = $2`, [rare, species])
     .then(data => {
        var itemIndex = selectItem(data.length)
+       console.log(data[itemIndex])
        return data[itemIndex]
   }).then( data => {
      db.none(`INSERT INTO pockets (username, aid)
@@ -98,22 +99,23 @@ Database.prototype.updateEXP = function(person, bells){
   .then(data => {
     var expData = expCrunch(bells, data.totalexp, data.level)
     db.any(`UPDATE viewer SET level = $1, nextlevel = $2, totalexp = $3, expnextlevel = $4 WHERE username = $5`,
-            [expData.newLevel, expData.nextLevel, expData.total, expData.remaining])
+            [expData.newLevel, expData.nextLevel, expData.total, expData.remaining, person])
     })
 }
 
 Database.prototype.sellPocket = function(person){
   console.log(person)
-  db.any(`SELECT sum(X) FROM (
-    SELECT bells AS X FROM viewer WHERE username = $1
+  db.any(`
+    SELECT bells FROM viewer WHERE username = $1
     UNION ALL
-    SELECT SUM(ecosystem.bells) AS X FROM pockets LEFT OUTER JOIN ecosystem ON ecosystem.ida = pockets.aid WHERE username = $1) AS Y`, [person])
+    SELECT SUM(ecosystem.bells) FROM pockets LEFT OUTER JOIN ecosystem ON ecosystem.ida = pockets.aid WHERE username = $1`, [person])
   .then(data => {
-      var bells = data[0].sum
-      client.action(`${person}`, `${person} you have gained ${bells} bells`)
-      console.log(`${person} ${bells} GAINED`)
+      client.action(`${person}`, `${person} you have gained ${data[1].bells} bells`)
+      var total = data[0].bells + data[1].bells
+      console.log(`${person} ${data[1].bells} GAINED`)
+      db.none(`UPDATE viewer SET bells = $1 WHERE username = $2`, [total, person])
       db.none(`DELETE FROM pockets WHERE username = $1`, [person])
-      return bells
+      return total
     })
   .then((bells) => {
     crossbase.updateEXP(person, bells)
@@ -255,3 +257,8 @@ client.on('chat', (channel, username, message, self) => {
 // LEVEL : 28  EXP : 16384000
 // LEVEL : 29  EXP : 23170475
 // LEVEL : 30  EXP : 32768000
+
+// db.any(`SELECT sum(X) FROM (
+//   SELECT bells AS X FROM viewer WHERE username = $1
+//   UNION ALL
+//   SELECT SUM(ecosystem.bells) AS X FROM pockets LEFT OUTER JOIN ecosystem ON ecosystem.ida = pockets.aid WHERE username = $1) AS Y`, [person])
