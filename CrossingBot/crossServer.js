@@ -65,14 +65,14 @@ Database.prototype.joinGame = function(person){
   db.none(`
       INSERT INTO viewer (username, net, pole, level, nextlevel, totalexp, expnextlevel, bells, turnips)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-      [person, 1, 1, 0, 1, 0, 1414, 0, 0])
+      [person, 1, 1, 0, 1, 1000, 1414, 0, 0])
     .then(() => {
-      client.action(`${person}`, `Welcome ${person}! you have joined the town VoHiYo  `)
+      client.action(`mutebard`, `Welcome ${person}! you have joined the town VoHiYo  `)
       console.log(`${person} ADDED`)
     })
     .catch((err) =>{
       console.log(err)
-      client.action(`${person}`, `you are already in the town ${person}!`)
+      client.action(`mutebard`, `you are already in the town ${person}!`)
       console.log(`${person} DUPLICATE REJECTED`)
     })
 }
@@ -89,7 +89,7 @@ Database.prototype.addPocket = function(person, rare, species){
               [person, data.ida])
      return data
   }).then(data => {
-     client.action(`${person}`, `${person} you have caught a ${data.species}, the ${data.name}`)
+     client.action(`mutebard`, `${person} you have caught a ${data.species}, the ${data.name}`)
      console.log(`${person} ${data.name} POCKETED`)
   });
 }
@@ -97,10 +97,11 @@ Database.prototype.addPocket = function(person, rare, species){
 Database.prototype.updateEXP = function(person, bells){
   db.any(`SELECT * FROM viewer WHERE username = $1`, [person])
   .then(data => {
-    var expData = expCrunch(bells, data.totalexp, data.level)
+    var expData = expCrunch(bells, data[0].totalexp)
     db.any(`UPDATE viewer SET level = $1, nextlevel = $2, totalexp = $3, expnextlevel = $4 WHERE username = $5`,
             [expData.newLevel, expData.nextLevel, expData.total, expData.remaining, person])
-    })
+  })
+  .catch(err => console.log(err))
 }
 
 Database.prototype.sellPocket = function(person){
@@ -110,17 +111,19 @@ Database.prototype.sellPocket = function(person){
     UNION ALL
     SELECT SUM(ecosystem.bells) FROM pockets LEFT OUTER JOIN ecosystem ON ecosystem.ida = pockets.aid WHERE username = $1`, [person])
   .then(data => {
-      client.action(`${person}`, `${person} you have gained ${data[1].bells} bells`)
-      var total = data[0].bells + data[1].bells
+      client.action(`mutebard`, `${person} you have gained ${data[1].bells} bells`)
+      var total = Number(data[0].bells) + Number(data[1].bells)
       console.log(`${person} ${data[1].bells} GAINED`)
       db.none(`UPDATE viewer SET bells = $1 WHERE username = $2`, [total, person])
       db.none(`DELETE FROM pockets WHERE username = $1`, [person])
       return total
     })
   .then((bells) => {
+    console.log(Number.isInteger(bells))
     crossbase.updateEXP(person, bells)
     console.log(`${person} POCKETS ALL DELETED`)
   })
+  .catch(err => console.log(err))
 };
 
 
@@ -143,19 +146,21 @@ function selectItem(size){
   var num = Math.floor((Math.random() * size) + 1);
   return num
 }
-// to exit vim esc w q ; enter
 
 
 
 
-function expCrunch(bells, totalExp, level){
+
+console.log(expCrunch(200, 1000))
+
+function expCrunch(bells, totalExp){
   var exp = expGain(bells)
   var newLevel = expToLevel(exp + totalExp)
-  return exp = {
+  return {
     aquired : expGain(bells),
     total : (exp + totalExp),
     nextLevel : Math.floor(newLevel + 1),
-    newlevel : Math.floor(newLevel),
+    newLevel : Math.floor(newLevel),
     remaining : Math.ceil(ExpRemain(newLevel, Math.floor(newLevel + 1)))
   }
 }
@@ -164,11 +169,12 @@ function expCrunch(bells, totalExp, level){
 //update to total experiences
 function expGain(bells){
   exp = bells / 10
-  return exp
+  return Math.floor(exp)
 }
 
 //return the difference between two levels
 function ExpRemain(level, levelNext){
+
   var expAtLevel = (Math.sqrt(Math.pow(2,level)) * 1000)
   var expAtLevelNext = (Math.sqrt(Math.pow(2,levelNext)) * 1000)
   return (expAtLevelNext - expAtLevel)
@@ -179,13 +185,16 @@ function expToLevel(exp){
   var level = Math.log2(Math.pow((exp/ 1000),2))
   return level
 }
-
+//
 crossbase = new Database()
 crossbase.setMonth(7); //Jan = 0, Feb = 1 ..... Dec = 11
 crossbase.setEcoSystem(function cb(recievedData){console.log(recievedData)});
 
 client.on('chat', (channel, username, message, self) => {
   var person = username["display-name"]
+  // console.log(`${person} PONG`)
+  // client.action(`mutebard`, `${person} PONG`)
+
   if(message == "!start"){
     crossbase.joinGame(person)
   }
@@ -199,66 +208,94 @@ client.on('chat', (channel, username, message, self) => {
     crossbase.sellPocket(person)
   }
 });
-
-//
-//
-// // //Whispers
-// // client2.connect().then((data) => {
-// //     client2.whisper("MuteBard", "I am Alive Too");
-// // }).catch((err) => {
-// //     console.log(err);
-// // });
 // //
-// // // Send a whisper to your bot to trigger this event..
-// // // client2.on("whisper", function (user, message) {
-// // //     console.log(user);
-// // //     console.log(message);
-// // // });
-//
-//
-//
-// //take in their current level
-// //take in their current exp
-//
-// //check their exp to the next level
-// //add a next level column
-//
-// //subtract current experience by the amount needed to reach the next level
-//
-// //update viewer table to view total experience, experience to next level and the next level
+// // // // //Whispers
+// // // // client2.connect().then((data) => {
+// // // //     client2.whisper("MuteBard", "I am Alive Too");
+// // // // }).catch((err) => {
+// // // //     console.log(err);
+// // // // });
+// // // //
+// // // // // Send a whisper to your bot to trigger this event..
+// // // // // client2.on("whisper", function (user, message) {
+// // // // //     console.log(user);
+// // // // //     console.log(message);
+// // // // // });
+// // //
+// // //
+// // //
+// // // //take in their current level
+// // // //take in their current exp
+// // //
+// // // //check their exp to the next level
+// // // //add a next level column
+// // //
+// // // //subtract current experience by the amount needed to reach the next level
+// // //
+// // // //update viewer table to view total experience, experience to next level and the next level
+// //
+// // // LEVEL : 1  EXP : 1414
+// // // LEVEL : 2  EXP : 2000
+// // // LEVEL : 3  EXP : 2828
+// // // LEVEL : 4  EXP : 4000
+// // // LEVEL : 5  EXP : 5656
+// // // LEVEL : 6  EXP : 8000
+// // // LEVEL : 7  EXP : 11313
+// // // LEVEL : 8  EXP : 16000
+// // // LEVEL : 9  EXP : 22627
+// // // LEVEL : 10  EXP : 32000
+// // // LEVEL : 11  EXP : 45254
+// // // LEVEL : 12  EXP : 64000
+// // // LEVEL : 13  EXP : 90509
+// // // LEVEL : 14  EXP : 128000
+// // // LEVEL : 15  EXP : 181019
+// // // LEVEL : 16  EXP : 256000
+// // // LEVEL : 17  EXP : 362038
+// // // LEVEL : 18  EXP : 512000
+// // // LEVEL : 19  EXP : 724077
+// // // LEVEL : 20  EXP : 1024000
+// // // LEVEL : 21  EXP : 1448154
+// // // LEVEL : 22  EXP : 2048000
+// // // LEVEL : 23  EXP : 2896309
+// // // LEVEL : 24  EXP : 4096000
+// // // LEVEL : 25  EXP : 5792618
+// // // LEVEL : 26  EXP : 8192000
+// // // LEVEL : 27  EXP : 11585237
+// // // LEVEL : 28  EXP : 16384000
+// // // LEVEL : 29  EXP : 23170475
+// // // LEVEL : 30  EXP : 32768000
+// //
+// // // db.any(`SELECT sum(X) FROM (
+// // //   SELECT bells AS X FROM viewer WHERE username = $1
+// // //   UNION ALL
+// // //   SELECT SUM(ecosystem.bells) AS X FROM pockets LEFT OUTER JOIN ecosystem ON ecosystem.ida = pockets.aid WHERE username = $1) AS Y`, [person])
+// //
+// //
+// // `          INSERT INTO postmessages (title , message)
+// //           VALUES ($1,$2)`,
+// //           [elem.ida, elem.species,])`
 
-// LEVEL : 1  EXP : 1414
-// LEVEL : 2  EXP : 2000
-// LEVEL : 3  EXP : 2828
-// LEVEL : 4  EXP : 4000
-// LEVEL : 5  EXP : 5656
-// LEVEL : 6  EXP : 8000
-// LEVEL : 7  EXP : 11313
-// LEVEL : 8  EXP : 16000
-// LEVEL : 9  EXP : 22627
-// LEVEL : 10  EXP : 32000
-// LEVEL : 11  EXP : 45254
-// LEVEL : 12  EXP : 64000
-// LEVEL : 13  EXP : 90509
-// LEVEL : 14  EXP : 128000
-// LEVEL : 15  EXP : 181019
-// LEVEL : 16  EXP : 256000
-// LEVEL : 17  EXP : 362038
-// LEVEL : 18  EXP : 512000
-// LEVEL : 19  EXP : 724077
-// LEVEL : 20  EXP : 1024000
-// LEVEL : 21  EXP : 1448154
-// LEVEL : 22  EXP : 2048000
-// LEVEL : 23  EXP : 2896309
-// LEVEL : 24  EXP : 4096000
-// LEVEL : 25  EXP : 5792618
-// LEVEL : 26  EXP : 8192000
-// LEVEL : 27  EXP : 11585237
-// LEVEL : 28  EXP : 16384000
-// LEVEL : 29  EXP : 23170475
-// LEVEL : 30  EXP : 32768000
+// console.log(`
+//   Function : ExpRemain
+//   INPUT
+//   level : ${level}
+//   levelNext : ${levelNext}
+//
+//   OUTPUT
+//   Remaining Exp : ${expAtLevelNext - expAtLevel}
+//   `)
 
-// db.any(`SELECT sum(X) FROM (
-//   SELECT bells AS X FROM viewer WHERE username = $1
-//   UNION ALL
-//   SELECT SUM(ecosystem.bells) AS X FROM pockets LEFT OUTER JOIN ecosystem ON ecosystem.ida = pockets.aid WHERE username = $1) AS Y`, [person])
+// console.log(`
+//   Function : expToLevel
+//   INPUT
+//   exp : ${exp}
+//
+//   MIDDLE COMPUTATIONS
+//   exp : ${exp}
+//   exp / 1000 : ${exp/1000}
+//   Math.pow((exp/ 1000)) : ${Math.pow((exp/1000),2)  }
+//   level : ${Math.log2(Math.pow((exp/ 1000),2))}
+//
+//   OUTPUT
+//   level : ${level}
+//   `)
