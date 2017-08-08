@@ -147,12 +147,6 @@ function selectItem(size){
   return num
 }
 
-
-
-
-
-console.log(expCrunch(200, 1000))
-
 function expCrunch(bells, totalExp){
   var exp = expGain(bells)
   var newLevel = expToLevel(exp + totalExp)
@@ -165,8 +159,7 @@ function expCrunch(bells, totalExp){
   }
 }
 
-
-//update to total experiences
+//update to total experiences 
 function expGain(bells){
   exp = bells / 10
   return Math.floor(exp)
