@@ -1,0 +1,293 @@
+*{
+    box-sizing: border-box;
+    font-family: consolas,sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+body,html{
+  height: 100%;
+}
+
+body {
+  background-color : #212121;
+  color : black;
+  text-decoration: none
+}
+
+.managerContainer{
+  display : flex;
+  flex-wrap : wrap;
+  position: absolute;
+  border : 5px solid #1B1B1B;
+  margin : 4.5em 4em 4.5em 4em;
+  padding: 1em 1em 1em 1em;
+  width : 91%;
+  background-color : #5369BC;
+}
+
+.plusContainer{
+  width : 10%;
+  height : 10%;
+  text-align: center;
+  margin : 3em 1em 0  1em;
+  opacity : 0.6;
+}
+
+.circle{
+  font-size: 5em;
+    background-color: #212121;
+    color : white;
+}
+
+.circle:hover{
+  background-color: white;
+  color :  #212121;
+}
+
+/*https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_buttons_animate3*/
+
+.dbimage:hover{
+  filter: invert(0);
+}
+
+
+.DB, .dbimage{
+  filter: invert(100);
+  padding : 10px 5px 5px 5px;
+}
+
+
+
+
+/*------------------Home--------------------*/
+
+
+.tablebackground{
+  background-image: url("./images/acnlback.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+}
+
+.tablecontainer{
+  display: flex;
+  flex-direction: column;
+  border: 5px solid #7BB6A4;
+  background-color: white;
+  margin : 2em 2em 2em 2em;
+  border-radius: .5px;
+}
+
+.tableitem1, .tableitem3{
+  background-color: #FEFDF0;
+  text-align: center;
+  padding: 1em 0 1em 0;
+  font-size: 1em;
+  width : 100%;
+}
+.tableitem2{
+  background-color: #F2FAD4;
+  text-align: center;
+  padding: 1em 0 1em 0;
+  font-size: 1em;
+  width : 100%;
+}
+
+
+.transparent{
+  background-color: rgba(4, 4, 4, 0.87);
+  padding : 12em 6em 0 6em;
+}
+.vert{
+  /*transform: rotate(90deg);*/
+  /*transform-origin: left top 0;*/
+  /*height:100%;*/
+  float: right;
+}
+
+
+.authtitle{
+  color : white;
+}
+/*------------------Table--------------------*/
+
+.backcover{
+  border: 5px solid #1B1B1B;
+  margin : 4.5em 4em 4.5em 4em;
+  padding: 1em 3em 3em 3em;
+  background-color : #5369BC;
+
+}
+
+.companies {
+  /*border : 2px solid red;*/
+  border-radius: 5px;
+  background-color: #A9B2D5;
+}
+
+.titleRowContainer{
+  display : flex;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  /*border : 2px solid brown;*/
+  background-color: #282F49;
+  color : white;
+}
+
+.lastresult{
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+
+.resultsContainer{
+  /*border : 2px solid purple;*/
+  display : flex;
+}
+
+.title, .result, .log{
+
+  text-align: center;
+  font-size: 1em;
+}
+.title, .result{
+  width : 100%;
+  margin : 1em 1em;
+}
+
+.title, .log, .log2{
+  /*border : 2px solid yellow;*/
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
+.log{
+  margin-bottom : 1.5em;
+  display: block;
+  color: white;
+}
+.log2{
+  margin-bottom : 1.5em;
+  display: block;
+  color: black;
+}
+
+.del , .plus{
+  color : #282F49;
+  /*width : 10%;*/
+  /*font-size: 2.5em;*/
+  font-weight: bold;
+  padding-top: 19px;
+  text-align: center;
+  /*border: 2px solid green;*/
+}
+
+.del{
+  margin-left: 20px;
+}
+.plus{
+  width : 100%;
+}
+
+
+.result{
+  /*border : 2px solid green;*/
+  font-size: 1.5em;
+}
+
+.saved{
+  color : black;
+  font-size: 1.5em;
+}
+
+.hide{
+  display: none;
+}
+
+.buttons{
+    /*border : 2px solid green;*/
+    margin-bottom: 1em;
+    text-align: right;
+}
+
+.text {
+  font-size: 2em;
+}
+
+.btnADD, .btnDEL, .btnEDIT, .btnSTART, .btnLOG{
+  display: inline-block;
+  padding: 6px 12px;
+  margin-bottom: 0;
+  font-weight: 400;
+  line-height: 1.42857143;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  -ms-touch-action: manipulation;
+  touch-action: manipulation;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  background-image: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+.btnDEL, .btnADD{
+  border-radius: 0px;
+  font-weight: bold;
+  background-color: #A9B2D5;
+}
+
+.btnADD:hover,.btnDEL:hover, .btnEDIT:hover{
+  color : white;
+  background-color:  #282F49;
+}
+
+.btnLOG{
+  background-color: rgba(0, 0, 0, 0.88);
+  font-size: 1.5em;
+  font-weight: bold;
+  border-radius : 1px;
+}
+
+.btnDEL{
+  font-size: 2.5em;
+  padding: 6px 25px;
+  margin : 0 0 0 0;
+}
+
+.btnEDIT{
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-left: 1em;
+  background-color: #282F49;
+}
+
+.btnADD{
+  font-size: 3em;
+  padding: 6px 0;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+
+.btnSTART{
+  position:absolute;
+  top: 50%;
+  left: 45%;
+}
+
+.btnLOG:hover{
+  -webkit-transition-duration: 0.4s; /* Safari */
+  transition-duration: 0.4s;
+  background-color: white;
+  -webkit-box-shadow:0 0 20px white;
+  -moz-box-shadow: 0 0 20px white;
+  border : 1px solid white;
+  box-shadow:0 0 20px white;
+  color : black;
+}

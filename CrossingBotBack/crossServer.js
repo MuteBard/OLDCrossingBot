@@ -1,10 +1,17 @@
-const tmi = require('tmi.js');
-const secret = require('./secret/sealed');
-
+const express = require('express');
+const cors = require('cors');
 const Promise = require('bluebird');
 const pgp = require('pg-promise')({
   promiseLib: Promise
 });
+const bodyParser = require('body-parser');
+const app = express();
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+
+const tmi = require('tmi.js');
+const secret = require('./secret/sealed');
 const db = pgp(secret)
 var options = {
   options : {
@@ -49,16 +56,18 @@ Database.prototype.getByMonth = function(cb){
   });
 }
 Database.prototype.setEcoSystem = function(cb){
-  crossbase.getByMonth(recievedData => {
-    db.none(`DELETE FROM ecosystem`)
-    recievedData.forEach(elem => {
-      db.none(`
-          INSERT INTO ecosystem (ida ,species, name, bells, months, rarity)
-          VALUES ($1,$2,$3,$4,$5,$6)`,
-          [elem.ida, elem.species, elem.name, elem.bells, elem.months, elem.rarity])
+  db.none(`DELETE FROM ecosystem`)
+    .then(() => {
+      crossbase.getByMonth(recievedData => {
+        recievedData.forEach(elem => {
+          db.none(`
+              INSERT INTO ecosystem (ida ,species, name, bells, months, rarity)
+              VALUES ($1,$2,$3,$4,$5,$6)`,
+              [elem.ida, elem.species, elem.name, elem.bells, elem.months, elem.rarity])
+          })
       })
-    cb(`ECOSYSTEM ${crossbase.monthChar}`)
   })
+    .then(() => cb(`ECOSYSTEM ${crossbase.monthChar}`))
 }
 
 Database.prototype.joinGame = function(person){
@@ -159,7 +168,10 @@ function expCrunch(bells, totalExp){
   }
 }
 
-//update to total experiences 
+
+
+
+//update to total experiences
 function expGain(bells){
   exp = bells / 10
   return Math.floor(exp)
@@ -201,6 +213,14 @@ client.on('chat', (channel, username, message, self) => {
     crossbase.sellPocket(person)
   }
 });
+
+app.get('/api/all',(req, resp, next) => {
+  db.any(`SELECT * FROM viewer`)
+    .then(data => resp.json(data))
+    .catch(next)
+})
+
+app.listen(4000, () => console.log('Listening on 4000'))
 // //
 // // // // //Whispers
 // // // // client2.connect().then((data) => {
@@ -257,7 +277,9 @@ client.on('chat', (channel, username, message, self) => {
 // // // LEVEL : 28  EXP : 16384000
 // // // LEVEL : 29  EXP : 23170475
 // // // LEVEL : 30  EXP : 32768000
-// //
+//
+// UPDATE company SET worth = CASE WHEN postal IN ('02026', '02933') THEN 34555 ELSE 4500 END
+
 // // // db.any(`SELECT sum(X) FROM (
 // // //   SELECT bells AS X FROM viewer WHERE username = $1
 // // //   UNION ALL
