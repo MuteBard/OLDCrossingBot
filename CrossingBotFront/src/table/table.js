@@ -8,19 +8,29 @@ class Table extends React.Component{
 
   componentDidMount(){
     this.props.getData()
-
   };
-
-
-
 
   render(){
     return(
       <div className="tablebackground">
         <div className="tablecontainer">
-          <div className="tableitem1">a</div>
-          <div className="tableitem2">b</div>
-          <div className="tableitem3">c</div>
+          <h1>CrossingBot Data on MidnightFreeze's room</h1>
+          <ul className="tableitem">
+            <li>Level</li>
+            <li>MuteBard</li>
+
+            <li>Money</li>
+            <li>Turnips</li>
+          </ul>
+          <ul className="tableitem">
+            <li>Level</li>
+            <li>MidnightFreeze</li>
+            <li>Money</li>
+            <li>Turnips</li>
+          </ul>
+
+
+
         </div>
       </div>
     )
