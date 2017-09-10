@@ -1,13 +1,3 @@
-DROP TABLE IF EXISTS bugnet CASCADE;
-CREATE TABLE bugnet(
-  id serial primary key,
-  trait varchar
-);
-DROP TABLE IF EXISTS fishingpole CASCADE;
-CREATE TABLE fishingpole(
-  id serial primary key,
-  trait varchar
-);
 DROP TABLE IF EXISTS animal CASCADE;
 CREATE TABLE animal(
   id serial primary key,
@@ -47,22 +37,6 @@ CREATE TABLE pockets(
   username varchar,
   aid integer references animal(ida)
 );
-
-
-INSERT INTO bugnet VALUES
-  (DEFAULT, 'Wooden'),
-  (DEFAULT, 'Regular'),
-  (DEFAULT, 'Silver'),
-  (DEFAULT, 'Gold'),
-  (DEFAULT, 'Platinum');
-
-
-INSERT INTO fishingpole VALUES
-  (DEFAULT, 'Wooden'),
-  (DEFAULT, 'Regular'),
-  (DEFAULT, 'Silver'),
-  (DEFAULT, 'Gold'),
-  (DEFAULT, 'Platinum');
 
 INSERT INTO animal VALUES
   (DEFAULT,0,'bug','Common Butterfly',90,'CDEFI',2),

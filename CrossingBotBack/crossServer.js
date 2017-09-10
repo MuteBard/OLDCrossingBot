@@ -220,6 +220,14 @@ app.get('/api/all',(req, resp, next) => {
     .catch(next)
 })
 
+app.post('/api/viewer', (req, resp, next) => {
+    let query = req.body.find;
+    console.log(query)
+    db.any(`select * from viewer where username ilike $1`,"%"+query+"%")
+    .then(data => resp.json(data))
+    .catch(next)
+});
+
 app.listen(4000, () => console.log('Listening on 4000'))
 // //
 // // // // //Whispers
