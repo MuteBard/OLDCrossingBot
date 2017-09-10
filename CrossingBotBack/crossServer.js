@@ -221,12 +221,21 @@ app.get('/api/all',(req, resp, next) => {
 })
 
 app.post('/api/viewer', (req, resp, next) => {
-    let query = req.body.find;
-    console.log(query)
-    db.any(`select * from viewer where username ilike $1`,"%"+query+"%")
-    .then(data => resp.json(data))
-    .catch(next)
+  let query = req.body.find;
+  console.log(query)
+  db.any(`SELECT * FROM viewer WHERE username ilike $1`,"%"+query+"%")
+  .then(data => resp.json(data))
+  .catch(next)
 });
+
+app.post('/api/pocket/:id', (req, resp, next) =>{
+  let user = req.body.id
+  db.any(`SELECT * FROM
+            (SELECT * FROM pockets LEFT OUTER JOIN ecosystem ON ecosystem.ida = pockets.aid)x
+          WHERE username = $1`,[user])
+  .then(data => resp.json(data))
+  .catch(next)
+})
 
 app.listen(4000, () => console.log('Listening on 4000'))
 // //

@@ -20,18 +20,12 @@ class Table extends React.Component{
 
   render(){
     return(
-
-
       <div>
-
         <div className="nav">
-
           <div><a><img src="../../login.png" height="50px"/></a></div>
           <div><a  href="https://twitter.com/MidiFreeze"><img src="../../twitter.png" height="45px"/></a></div>
           <div><a  href="https://www.twitch.tv/midnightfreeze"><img src="../../twitch.svg" height="45px"/></a></div>
-
         </div>
-
         <div className="tablecontainer">
           <h1 className="title">CrossingBot Data on MidnightFreeze's room</h1>
           <scan className="searchcontainer">
@@ -42,24 +36,22 @@ class Table extends React.Component{
               x
             </button>
           </scan>
-
           {this.props.users.map((person, idx) =>
-            <ul key={idx} className="tableitem">
-              <img className="tableitemimg" src="../../acnlback.png" height="150px"></img>
-              <div className="tableitemdata">
-                <li>{person.username}</li>
-
-                <li>Turnips<br/>{person.turnips}</li>
-                <li>Bells<br/>{person.bells}</li>
-                <li>Level<br/>{person.level}</li>
-                <li>Bugnet<br/>{this.toolRank(person.net)}</li>
-                <li>FishingPole<br/>{this.toolRank(person.pole)}</li>
-
-              </div>
-            </ul>
+            <Link className="links" key={idx} to={`/user:${person.username}`}>
+              <ul className="tableitem">
+                <img className="tableitemimg" src="../../acnlback.png" height="150px"></img>
+                <div className="tableitemdata">
+                  <li>{person.username}</li>
+                  <li>Turnips<br/>{person.turnips}</li>
+                  <li>Bells<br/>{person.bells}</li>
+                  <li>Level<br/>{person.level}</li>
+                  <li>Bugnet<br/>{this.toolRank(person.net)}</li>
+                  <li>FishingPole<br/>{this.toolRank(person.pole)}</li>
+                </div>
+              </ul>
+            </Link>
           )}
-
-
+          {this.props.users.length === 0 ? <h2 className="nosults"> No Results </h2> : null}
         </div>
       </div>
     )

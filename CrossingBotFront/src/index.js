@@ -13,7 +13,7 @@ import Main from './main';
 
 //Reducers
 import tableReducer from './table/table.reducer';
-
+import userReducer from './user/user.reducer';
 
 //version 4 for react router
 //https://medium.com/@pshrmn/a-simple-react-router-v4-tutorial-7f23ff27adf
@@ -21,7 +21,8 @@ import { BrowserRouter } from "react-router-dom";
 
 //sum up all reducers into one reducer object
 const reducer = Redux.combineReducers({
-  table: tableReducer
+  table: tableReducer,
+  user: userReducer
 })
 
 //create the store
