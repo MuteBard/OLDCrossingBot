@@ -233,3 +233,88 @@ a:hover   {
   background-color: #1d5424;
   transform: translateY(1px);
 }
+
+/*------------------------------------------------------*/
+
+.pocketContainer{
+  margin-top: 5em;
+  /*border: 2px solid red;*/
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  justify-content: center;
+  font-family: Raleway,consolas,sans-serif;
+
+}
+
+.pocketHeader{
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  /*border: 2px solid purple;*/
+  flex-direction: column;
+  padding-top: 1em;
+  /*width : 50%;  */
+
+}
+.pocketBody{
+  display: flex;
+  /*border: 2px solid blue;*/
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+
+}
+
+.pocketTitle{
+  /*border: 2px solid cyan;*/
+  display: flex;
+  list-style: none;
+  padding : 1em 1.5em;
+  width : 50%;
+  text-align: center;
+  background-color: #48c258;
+  border-radius: 5px;
+  box-shadow: 5px 5px 5px #87b096;
+}
+.pocketTitle li:nth-child(n){
+  font-size: 1.1em;
+  font-weight: bold;
+  text-align: center;
+  /*border : 2px solid orange;*/
+  padding : 1em 1.5em;
+  width : 20%;
+}
+
+.pocketBody ul:nth-child(even){
+  background-color: #42813e;
+  box-shadow: 5px 5px 5px #87b096;
+}
+
+.pocketBody ul:nth-child(odd){
+  background-color :#48c258;
+  box-shadow: 5px 5px 5px #87b096;
+}
+
+
+.pocketItem{
+  display: flex;
+  padding : 1em 1.5em;
+  /*border : 2px solid green;*/
+  flex-direction: row;
+  width : 50%;
+  text-align: center;
+  align-items: center;
+  align-content: center;
+  border-radius: 5px;
+  /*width : 20%;*/
+}
+
+.pocketItem li:nth-child(n){
+  width : 20%;
+  /*border: 2px solid lime;*/
+  /*display: flex;*/
+  list-style: none;
+  padding : 1em 1.5em;
+}

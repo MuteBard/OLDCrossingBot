@@ -110,6 +110,7 @@ Database.prototype.updateEXP = function(person, bells){
     db.any(`UPDATE viewer SET level = $1, nextlevel = $2, totalexp = $3, expnextlevel = $4 WHERE username = $5`,
             [expData.newLevel, expData.nextLevel, expData.total, expData.remaining, person])
   })
+  //implement here tool level up
   .catch(err => console.log(err))
 }
 
@@ -149,6 +150,14 @@ function selectRarity(){
   else if(num % 6 == 0)  return 3
   else if(num % 3 == 0)  return 2
   else                   return 1
+}
+
+function toolLevelUp(lvl){
+  if (lvl >= 30 )    return 5
+  else if(lvl >= 20) return 4
+  else if(lvl >= 10) return 3
+  else if(lvl >= 5)  return 2
+  else               return 1
 }
 
 function selectItem(size){
@@ -268,12 +277,12 @@ app.listen(4000, () => console.log('Listening on 4000'))
 // // // LEVEL : 2  EXP : 2000
 // // // LEVEL : 3  EXP : 2828
 // // // LEVEL : 4  EXP : 4000
-// // // LEVEL : 5  EXP : 5656
+// // // LEVEL : 5  EXP : 5656 //regular
 // // // LEVEL : 6  EXP : 8000
 // // // LEVEL : 7  EXP : 11313
 // // // LEVEL : 8  EXP : 16000
 // // // LEVEL : 9  EXP : 22627
-// // // LEVEL : 10  EXP : 32000
+// // // LEVEL : 10  EXP : 32000 // sil
 // // // LEVEL : 11  EXP : 45254
 // // // LEVEL : 12  EXP : 64000
 // // // LEVEL : 13  EXP : 90509
@@ -283,7 +292,7 @@ app.listen(4000, () => console.log('Listening on 4000'))
 // // // LEVEL : 17  EXP : 362038
 // // // LEVEL : 18  EXP : 512000
 // // // LEVEL : 19  EXP : 724077
-// // // LEVEL : 20  EXP : 1024000
+// // // LEVEL : 20  EXP : 1024000 //gold
 // // // LEVEL : 21  EXP : 1448154
 // // // LEVEL : 22  EXP : 2048000
 // // // LEVEL : 23  EXP : 2896309
@@ -293,7 +302,7 @@ app.listen(4000, () => console.log('Listening on 4000'))
 // // // LEVEL : 27  EXP : 11585237
 // // // LEVEL : 28  EXP : 16384000
 // // // LEVEL : 29  EXP : 23170475
-// // // LEVEL : 30  EXP : 32768000
+// // // LEVEL : 30  EXP : 32768000 //platinum
 //
 // UPDATE company SET worth = CASE WHEN postal IN ('02026', '02933') THEN 34555 ELSE 4500 END
 

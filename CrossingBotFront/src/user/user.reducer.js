@@ -1,5 +1,6 @@
 const INITAL_STATE = {
-  viewer: {}
+  viewer: {},
+  pocket: []
 };
 
 export default function reducer(state = INITAL_STATE, action){
@@ -17,7 +18,10 @@ export default function reducer(state = INITAL_STATE, action){
   }
 
   else if(action.type === "pocket"){
-    console.log(action.value)
+    return Object.assign({}, state, {
+      pocket: action.value
+    });
   }
+  
   return state
 }

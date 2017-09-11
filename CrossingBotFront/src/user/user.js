@@ -16,7 +16,32 @@ class User extends React.Component{
   render(){
     return(
       <div>
-        <h1>TEST USER</h1>
+        <div className="pocketContainer">
+          <div className="pocketHeader">
+            <div><img className="tableitemimg" src="../../acnlback.png" height="200px"></img></div>
+            <h2 className="pocketOwner">{this.props.user.viewer.username}'s pocket</h2>
+          </div>
+          <div className="pocketBody">
+            <ul className="pocketTitle">
+              <li>Image</li>
+              <li>Name</li>
+              <li>Kind</li>
+              <li>Bells</li>
+              <li>Rarity</li>
+              <li>Availibilty</li>
+            </ul>
+            {this.props.user.pocket.map((data, idx) =>
+              <ul key={idx} className="pocketItem">
+                <li><img className="tableitemimg" src="../../acnlback.png" height="50px"></img></li>
+                <li>{data.name}</li>
+                <li>{data.species}</li>
+                <li>{data.bells}</li>
+                <li>{data.rarity}</li>
+                <li>{data.months}</li>
+              </ul>
+            )}
+          </div>
+        </div>
       </div>
     )
   }
