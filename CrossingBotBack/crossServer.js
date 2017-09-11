@@ -73,8 +73,8 @@ Database.prototype.setEcoSystem = function(cb){
 Database.prototype.joinGame = function(person){
   db.none(`
       INSERT INTO viewer (username, net, pole, level, nextlevel, totalexp, expnextlevel, bells, turnips)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-      [person, 1, 1, 0, 1, 1000, 1414, 0, 0])
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+      [person, 1, 1, 0, 1, 1000, 1414, 0, 0, 0, 0])
     .then(() => {
       client.action(`mutebard`, `Welcome ${person}! you have joined the town VoHiYo  `)
       console.log(`${person} ADDED`)
@@ -89,9 +89,13 @@ Database.prototype.joinGame = function(person){
 Database.prototype.addPocket = function(person, rare, species){
   db.any(`SELECT * FROM ECOSYSTEM WHERE rarity = $1 AND species = $2`, [rare, species])
     .then(data => {
-       var itemIndex = selectItem(data.length)
-       console.log(data[itemIndex])
-       return data[itemIndex]
+      var itemIndex = selectItem(data.length)
+      if(species === 'bug') db.none(`UPDATE viewer SET netexp = netexp + $1`[toolEXP(rare)])
+      else db.none(`UPDATE viewer SET poleexp = poleexp + $1`,[toolEXP(rare)])
+      return itemData
+  }).then( data => {
+
+    //you need to update the tool level here
   }).then( data => {
      db.none(`INSERT INTO pockets (username, aid)
               VALUES ($1, $2)`,
@@ -110,7 +114,8 @@ Database.prototype.updateEXP = function(person, bells){
     db.any(`UPDATE viewer SET level = $1, nextlevel = $2, totalexp = $3, expnextlevel = $4 WHERE username = $5`,
             [expData.newLevel, expData.nextLevel, expData.total, expData.remaining, person])
   })
-  //implement here tool level up
+
+
   .catch(err => console.log(err))
 }
 
@@ -152,13 +157,23 @@ function selectRarity(){
   else                   return 1
 }
 
-function toolLevelUp(lvl){
-  if (lvl >= 30 )    return 5
-  else if(lvl >= 20) return 4
-  else if(lvl >= 10) return 3
-  else if(lvl >= 5)  return 2
-  else               return 1
+function toolEXP(rare){
+  if (rare === 5)     return 5*20
+  else if(rare === 4) return 4*10
+  else if(rare === 3) return 3*5
+  else if(rare === 2) return 2*2
+  else                return 1
 }
+
+function toolLevelUp(exp){
+  if (exp >= 100000)    return 5
+  else if(exp >= 10000) return 4
+  else if(exp >= 1000)  return 3
+  else if(exp >= 150)   return 2
+  else                  return 1
+}
+
+
 
 function selectItem(size){
   var num = Math.floor((Math.random() * size) + 1);
@@ -176,8 +191,6 @@ function expCrunch(bells, totalExp){
     remaining : Math.ceil(ExpRemain(newLevel, Math.floor(newLevel + 1)))
   }
 }
-
-
 
 
 //update to total experiences

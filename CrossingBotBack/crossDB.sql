@@ -29,7 +29,10 @@ CREATE TABLE viewer(
   totalexp integer,
   expnextlevel integer,
   bells integer,
-  turnips integer
+  turnips integer,
+  netexp integer,
+  poleexp integer
+
 );
 DROP TABLE IF EXISTS pockets CASCADE;
 CREATE TABLE pockets(
