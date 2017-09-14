@@ -22,8 +22,8 @@ DROP TABLE IF EXISTS viewer CASCADE;
 CREATE TABLE viewer(
   id serial primary key,
   username varchar UNIQUE,
-  net integer references bugnet(id),
-  pole integer references fishingpole(id),
+  net integer,
+  pole integer,
   level integer,
   nextlevel integer,
   totalexp integer,
