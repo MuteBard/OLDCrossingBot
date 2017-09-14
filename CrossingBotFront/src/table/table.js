@@ -39,7 +39,7 @@ class Table extends React.Component{
           {this.props.users.map((person, idx) =>
             <Link className="links" key={idx} to={`/user:${person.username}`}>
               <ul className="tableitem">
-                <img className="tableitemimg" src="../../default.png" height="150px"></img>
+                <img className="tableitemimg" src={person.image} height="150px"></img>
                 <div className="tableitemdata">
                   <li>{person.username}</li>
                   <li>Turnips<br/>{person.turnips}</li>

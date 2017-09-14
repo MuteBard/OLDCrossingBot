@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const Promise = require('bluebird');
+const request = require('request');
 const pgp = require('pg-promise')({
   promiseLib: Promise
 });
@@ -27,6 +28,7 @@ var options = {
   },
   channels: ["MidnightFreeze", "MuteBard"]
 };
+
 
 var client = new tmi.client(options);
 var client2 = new tmi.client(options);
@@ -72,18 +74,32 @@ Database.prototype.setEcoSystem = function(cb){
 
 Database.prototype.joinGame = function(person){
   db.none(`
-      INSERT INTO viewer (username, net, pole, level, nextlevel, totalexp, expnextlevel, bells, turnips)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-      [person, 1, 1, 0, 1, 1000, 1414, 0, 0, 0, 0])
+      INSERT INTO viewer (username, net, pole, level, nextlevel, totalexp, expnextlevel, bells, turnips, netexp, poleexp, image)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+      [person, 1, 1, 0, 1, 1000, 1414, 0, 0, 0, 0, null])
     .then(() => {
       client.action(`mutebard`, `Welcome ${person}! you have joined the town VoHiYo  `)
       console.log(`${person} ADDED`)
-    })
+  })
+  .then(() => {
+    var options2 = {
+      url:`https://api.twitch.tv/helix/users?login=${person}`,
+      method:'GET',
+      headers:{'Client-ID': '2vnc16bhkw59djckt61f7odsk424rh',
+                'Accept' : 'application/vnd.twitchtv.v5+json'},
+      sucesss: (data) => (data)
+    }
+      request(options2, (error, response, body) => {
+        let info = JSON.parse(body)
+        let avatar = info.data[0].profile_image_url
+        db.none(`UPDATE viewer SET image = $1 WHERE username = $2`,[avatar, person])
+      })
+  })
     .catch((err) =>{
       console.log(err)
       client.action(`mutebard`, `you are already in the town ${person}!`)
       console.log(`${person} DUPLICATE REJECTED`)
-    })
+  })
 }
 
 Database.prototype.addPocket = function(person, rare, species){
@@ -96,7 +112,7 @@ Database.prototype.addPocket = function(person, rare, species){
       return data[itemIndex]
   }).then(data => {
       console.log(data)
-      db.none(`INSERT INTO pockets (person, aid, record)
+      db.none(`INSERT INTO pockets (username, aid, record)
             VALUES ($1, $2, LOCALTIMESTAMP)`,
             [person, data.ida])
       return data
@@ -114,7 +130,6 @@ Database.prototype.addPocket = function(person, rare, species){
   }).catch(err => console.log(err))
 }
 
-
 Database.prototype.updateEXP = function(person, bells){
   db.any(`SELECT * FROM viewer WHERE username = $1`, [person])
   .then(data => {
@@ -130,24 +145,21 @@ Database.prototype.sellPocket = function(person){
   db.any(`
     SELECT bells FROM viewer WHERE username = $1
     UNION ALL
-    SELECT SUM(ecosystem.bells) FROM pockets LEFT OUTER JOIN ecosystem ON ecosystem.ida = pockets.aid WHERE person = $1`, [person])
+    SELECT SUM(ecosystem.bells) FROM pockets LEFT OUTER JOIN ecosystem ON ecosystem.ida = pockets.aid WHERE username = $1`, [person])
   .then(data => {
       client.action(`mutebard`, `${person} you have gained ${data[1].bells} bells`)
       var total = Number(data[0].bells) + Number(data[1].bells)
       console.log(`${person} ${data[1].bells} GAINED`)
       db.none(`UPDATE viewer SET bells = $1 WHERE username = $2`, [total, person])
-      db.none(`DELETE FROM pockets WHERE person = $1`, [person])
       return total
     })
   .then((bells) => {
     console.log(Number.isInteger(bells))
     crossbase.updateEXP(person, bells)
-    console.log(`${person} POCKETS ALL DELETED`)
   })
+  .then(() => db.none(`DELETE FROM pockets WHERE username = $1`, [person]))
   .catch(err => console.log(err))
 };
-
-
 
 function selectSpecies(message){
   if(message.slice(5,6) == "b") return 'bug'
@@ -178,8 +190,6 @@ function toolLevelUp(exp){
   else if(exp >= 150)   return 2
   else                  return 1
 }
-
-
 
 function selectItem(size){
   var num = Math.floor((Math.random() * size) + 1);
@@ -223,16 +233,17 @@ crossbase = new Database()
 crossbase.setMonth(9); //Jan = 0, Feb = 1 ..... Dec = 11
 crossbase.setEcoSystem(function cb(recievedData){console.log(recievedData)});
 
-client.on('chat', (channel, username, message, self) => {
-  var person = username["display-name"]
+client.on('chat', (channel, userstate, message, self) => {
+  var person = userstate["display-name"]
   // console.log(`${person} PONG`)
   // client.action(`mutebard`, `${person} PONG`)
+
 
   if(message == "!start"){
     crossbase.joinGame(person)
   }
   else if(message == "!use-bugnet" || message == "!use-fishpole"){
-    var person = username["display-name"]
+    var person = userstate["display-name"]
     var rare = selectRarity()
     var species = selectSpecies(message)
     crossbase.addPocket(person, rare, species)
@@ -260,7 +271,7 @@ app.post('/api/pocket/:id', (req, resp, next) =>{
   let user = req.body.id
   db.any(`SELECT * FROM
             (SELECT * FROM pockets LEFT OUTER JOIN ecosystem ON ecosystem.ida = pockets.aid)x
-          WHERE person = $1`,[user])
+          WHERE username = $1`,[user])
 
 
   .then(data => resp.json(data))
@@ -268,96 +279,47 @@ app.post('/api/pocket/:id', (req, resp, next) =>{
 })
 
 app.listen(4000, () => console.log('Listening on 4000'))
-// //
-// // // // //Whispers
-// // // // client2.connect().then((data) => {
-// // // //     client2.whisper("MuteBard", "I am Alive Too");
-// // // // }).catch((err) => {
-// // // //     console.log(err);
-// // // // });
-// // // //
-// // // // // Send a whisper to your bot to trigger this event..
-// // // // // client2.on("whisper", function (user, message) {
-// // // // //     console.log(user);
-// // // // //     console.log(message);
-// // // // // });
-// // //
-// // //
-// // //
-// // // //take in their current level
-// // // //take in their current exp
-// // //
-// // // //check their exp to the next level
-// // // //add a next level column
-// // //
-// // // //subtract current experience by the amount needed to reach the next level
-// // //
-// // // //update viewer table to view total experience, experience to next level and the next level
-// //
-// // // LEVEL : 1  EXP : 1414
-// // // LEVEL : 2  EXP : 2000
-// // // LEVEL : 3  EXP : 2828
-// // // LEVEL : 4  EXP : 4000
-// // // LEVEL : 5  EXP : 5656 //regular
-// // // LEVEL : 6  EXP : 8000
-// // // LEVEL : 7  EXP : 11313
-// // // LEVEL : 8  EXP : 16000
-// // // LEVEL : 9  EXP : 22627
-// // // LEVEL : 10  EXP : 32000 // sil
-// // // LEVEL : 11  EXP : 45254
-// // // LEVEL : 12  EXP : 64000
-// // // LEVEL : 13  EXP : 90509
-// // // LEVEL : 14  EXP : 128000
-// // // LEVEL : 15  EXP : 181019
-// // // LEVEL : 16  EXP : 256000
-// // // LEVEL : 17  EXP : 362038
-// // // LEVEL : 18  EXP : 512000
-// // // LEVEL : 19  EXP : 724077
-// // // LEVEL : 20  EXP : 1024000 //gold
-// // // LEVEL : 21  EXP : 1448154
-// // // LEVEL : 22  EXP : 2048000
-// // // LEVEL : 23  EXP : 2896309
-// // // LEVEL : 24  EXP : 4096000
-// // // LEVEL : 25  EXP : 5792618
-// // // LEVEL : 26  EXP : 8192000
-// // // LEVEL : 27  EXP : 11585237
-// // // LEVEL : 28  EXP : 16384000
-// // // LEVEL : 29  EXP : 23170475
-// // // LEVEL : 30  EXP : 32768000 //platinum
-//
-// UPDATE company SET worth = CASE WHEN postal IN ('02026', '02933') THEN 34555 ELSE 4500 END
 
-// // // db.any(`SELECT sum(X) FROM (
-// // //   SELECT bells AS X FROM viewer WHERE username = $1
-// // //   UNION ALL
-// // //   SELECT SUM(ecosystem.bells) AS X FROM pockets LEFT OUTER JOIN ecosystem ON ecosystem.ida = pockets.aid WHERE username = $1) AS Y`, [person])
+// // //Whispers
+// // client2.connect().then((data) => {
+// //     client2.whisper("MuteBard", "I am Alive Too");
+// // }).catch((err) => {
+// //     console.log(err);
+// // });
 // //
-// //
-// // `          INSERT INTO postmessages (title , message)
-// //           VALUES ($1,$2)`,
-// //           [elem.ida, elem.species,])`
-
-// console.log(`
-//   Function : ExpRemain
-//   INPUT
-//   level : ${level}
-//   levelNext : ${levelNext}
+// // Send a whisper to your bot to trigger this event..
+// // client2.on("whisper", function (user, message) {
+// //     console.log(user);
+// //     console.log(message);
+// // });
 //
-//   OUTPUT
-//   Remaining Exp : ${expAtLevelNext - expAtLevel}
-//   `)
-
-// console.log(`
-//   Function : expToLevel
-//   INPUT
-//   exp : ${exp}
-//
-//   MIDDLE COMPUTATIONS
-//   exp : ${exp}
-//   exp / 1000 : ${exp/1000}
-//   Math.pow((exp/ 1000)) : ${Math.pow((exp/1000),2)  }
-//   level : ${Math.log2(Math.pow((exp/ 1000),2))}
-//
-//   OUTPUT
-//   level : ${level}
-//   `)
+// // LEVEL : 1  EXP : 1414
+// // LEVEL : 2  EXP : 2000
+// // LEVEL : 3  EXP : 2828
+// // LEVEL : 4  EXP : 4000
+// // LEVEL : 5  EXP : 5656
+// // LEVEL : 6  EXP : 8000
+// // LEVEL : 7  EXP : 11313
+// // LEVEL : 8  EXP : 16000
+// // LEVEL : 9  EXP : 22627
+// // LEVEL : 10  EXP : 32000
+// // LEVEL : 11  EXP : 45254
+// // LEVEL : 12  EXP : 64000
+// // LEVEL : 13  EXP : 90509
+// // LEVEL : 14  EXP : 128000
+// // LEVEL : 15  EXP : 181019
+// // LEVEL : 16  EXP : 256000
+// // LEVEL : 17  EXP : 362038
+// // LEVEL : 18  EXP : 512000
+// // LEVEL : 19  EXP : 724077
+// // LEVEL : 20  EXP : 1024000
+// // LEVEL : 21  EXP : 1448154
+// // LEVEL : 22  EXP : 2048000
+// // LEVEL : 23  EXP : 2896309
+// // LEVEL : 24  EXP : 4096000
+// // LEVEL : 25  EXP : 5792618
+// // LEVEL : 26  EXP : 8192000
+// // LEVEL : 27  EXP : 11585237
+// // LEVEL : 28  EXP : 16384000
+// // LEVEL : 29  EXP : 23170475
+// // LEVEL : 30  EXP : 32768000

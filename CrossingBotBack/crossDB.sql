@@ -31,7 +31,8 @@ CREATE TABLE viewer(
   bells integer,
   turnips integer,
   netexp integer,
-  poleexp integer
+  poleexp integer,
+  image varchar
 
 );
 DROP TABLE IF EXISTS pockets CASCADE;

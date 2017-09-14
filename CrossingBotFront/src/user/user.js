@@ -18,7 +18,7 @@ class User extends React.Component{
       <div>
         <div className="pocketContainer">
           <div className="pocketHeader">
-            <div><img className="tableitemimg" src="../../acnlback.png" height="200px"></img></div>
+            <div><img className="tableitemimg" src={this.props.user.viewer.image} height="200px"></img></div>
             <h2 className="pocketOwner">{this.props.user.viewer.username}'s pocket</h2>
           </div>
           <div className="pocketBody">
