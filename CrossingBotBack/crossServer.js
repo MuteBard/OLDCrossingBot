@@ -90,22 +90,30 @@ Database.prototype.addPocket = function(person, rare, species){
   db.any(`SELECT * FROM ECOSYSTEM WHERE rarity = $1 AND species = $2`, [rare, species])
     .then(data => {
       var itemIndex = selectItem(data.length)
-      if(species === 'bug') db.none(`UPDATE viewer SET netexp = netexp + $1`[toolEXP(rare)])
-      else db.none(`UPDATE viewer SET poleexp = poleexp + $1`,[toolEXP(rare)])
-      return itemData
-  }).then( data => {
-
-    //you need to update the tool level here
-  }).then( data => {
-     db.none(`INSERT INTO pockets (username, aid)
-              VALUES ($1, $2)`,
-              [person, data.ida])
-     return data
+      let newExp = toolEXP(rare)
+      if(species === 'bug') db.none(`UPDATE viewer SET netexp = netexp + $1 WHERE username = $2`, [newExp, person])
+      else db.none(`UPDATE viewer SET poleexp = poleexp + $1 WHERE username = $2`,[newExp, person])
+      return data[itemIndex]
   }).then(data => {
-     client.action(`mutebard`, `${person} you have caught a ${data.species}, the ${data.name}`)
-     console.log(`${person} ${data.name} POCKETED`)
-  });
+      console.log(data)
+      db.none(`INSERT INTO pockets (person, aid, record)
+            VALUES ($1, $2, LOCALTIMESTAMP)`,
+            [person, data.ida])
+      return data
+  }).then((data) => {
+      console.log(data)
+      client.action(`mutebard`, `${person} you have caught a ${data.species}, the ${data.name}`)
+      console.log(`${person} ${data.name} POCKETED`)
+  }).catch(err => console.log(err))
+
+  db.any(`SELECT netexp, poleexp FROM viewer WHERE username = $1` , [person])
+    .then(exp => {
+      level = (species === 'bug' ? toolLevelUp(exp[0].netexp) : toolLevelUp(exp[0].poleexp))
+      if(species === 'bug') db.any(`UPDATE viewer SET net = $1 WHERE username = $2`,[level, person])
+      else db.any(`UPDATE viewer SET pole = $1 WHERE username = $2`,[level,person])
+  }).catch(err => console.log(err))
 }
+
 
 Database.prototype.updateEXP = function(person, bells){
   db.any(`SELECT * FROM viewer WHERE username = $1`, [person])
@@ -114,8 +122,6 @@ Database.prototype.updateEXP = function(person, bells){
     db.any(`UPDATE viewer SET level = $1, nextlevel = $2, totalexp = $3, expnextlevel = $4 WHERE username = $5`,
             [expData.newLevel, expData.nextLevel, expData.total, expData.remaining, person])
   })
-
-
   .catch(err => console.log(err))
 }
 
@@ -124,13 +130,13 @@ Database.prototype.sellPocket = function(person){
   db.any(`
     SELECT bells FROM viewer WHERE username = $1
     UNION ALL
-    SELECT SUM(ecosystem.bells) FROM pockets LEFT OUTER JOIN ecosystem ON ecosystem.ida = pockets.aid WHERE username = $1`, [person])
+    SELECT SUM(ecosystem.bells) FROM pockets LEFT OUTER JOIN ecosystem ON ecosystem.ida = pockets.aid WHERE person = $1`, [person])
   .then(data => {
       client.action(`mutebard`, `${person} you have gained ${data[1].bells} bells`)
       var total = Number(data[0].bells) + Number(data[1].bells)
       console.log(`${person} ${data[1].bells} GAINED`)
       db.none(`UPDATE viewer SET bells = $1 WHERE username = $2`, [total, person])
-      db.none(`DELETE FROM pockets WHERE username = $1`, [person])
+      db.none(`DELETE FROM pockets WHERE person = $1`, [person])
       return total
     })
   .then((bells) => {
@@ -214,7 +220,7 @@ function expToLevel(exp){
 }
 //
 crossbase = new Database()
-crossbase.setMonth(7); //Jan = 0, Feb = 1 ..... Dec = 11
+crossbase.setMonth(9); //Jan = 0, Feb = 1 ..... Dec = 11
 crossbase.setEcoSystem(function cb(recievedData){console.log(recievedData)});
 
 client.on('chat', (channel, username, message, self) => {
@@ -254,7 +260,9 @@ app.post('/api/pocket/:id', (req, resp, next) =>{
   let user = req.body.id
   db.any(`SELECT * FROM
             (SELECT * FROM pockets LEFT OUTER JOIN ecosystem ON ecosystem.ida = pockets.aid)x
-          WHERE username = $1`,[user])
+          WHERE person = $1`,[user])
+
+
   .then(data => resp.json(data))
   .catch(next)
 })

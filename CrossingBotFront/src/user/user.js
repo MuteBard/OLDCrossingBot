@@ -32,7 +32,7 @@ class User extends React.Component{
             </ul>
             {this.props.user.pocket.map((data, idx) =>
               <ul key={idx} className="pocketItem">
-                <li><img className="tableitemimg" src="../../acnlback.png" height="50px"></img></li>
+                <li><img className="tableitemimg" src={data.species === 'bug' ? '../../bug.ico' : '../../fish.png'} height= {data.species === 'bug' ? "50px" : "70px"}></img></li>
                 <li>{data.name}</li>
                 <li>{data.species}</li>
                 <li>{data.bells}</li>

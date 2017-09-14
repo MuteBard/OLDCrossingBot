@@ -38,7 +38,8 @@ DROP TABLE IF EXISTS pockets CASCADE;
 CREATE TABLE pockets(
   id serial primary key,
   username varchar,
-  aid integer references animal(ida)
+  aid integer references animal(ida),
+  record timestamp with time zone
 );
 
 INSERT INTO animal VALUES
