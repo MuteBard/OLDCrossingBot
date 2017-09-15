@@ -43,7 +43,7 @@ class Table extends React.Component{
                 <div className="tableitemdata">
                   <li>{person.username}</li>
                   <li>Turnips<img className="icon" src={'../../money/turnip1.gif'}></img><br/>{person.turnips}</li>
-                  <li>Bells<img className="icon" src={'../../money/money.gif'}></img><br/>{person.bells}</li>
+                  <li>Bells<img className="icon" src={'../../money/money.gif'}></img><br/>{person.vbells}</li>
                   <li>Level<img className="icon" src={'../../things/lvl.gif'}></img><br/>{person.level+1}</li>
                   <li>Bugnet<img className="icon" src={'../../net/net1.gif'}></img><br/>{this.toolRank(person.net)}</li>
                   <li>FishingPole<img className="icon" src={'../../pole/pole1.gif'}></img><br/>{this.toolRank(person.pole)}</li>

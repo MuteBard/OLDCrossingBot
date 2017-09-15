@@ -26,7 +26,7 @@ var options = {
     username: "CrossingBot",
     password: secret.oauth
   },
-  channels: ["MidnightFreeze", "MuteBard"]
+  channels: ["MidnightFreeze"]
 };
 
 
