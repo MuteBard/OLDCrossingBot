@@ -15,6 +15,12 @@ class User extends React.Component{
   render(){
     return(
       <div>
+        <div className="nav">
+          <div><a><img src="../../login.png" height="50px"/></a></div>
+          <div><a  href="https://twitter.com/MidiFreeze"><img src="../../twitter.png" height="45px"/></a></div>
+          <div><a  href="https://www.twitch.tv/midnightfreeze"><img src="../../twitch.svg" height="45px"/></a></div>
+          <div><Link to="/"><img src="../../back.png" height="45px"/></Link></div>
+        </div>
         <div className="pocketContainer">
           <div className="pocketHeader">
             <div><img className="pocketImg" src={this.props.image} height="200px"></img></div>
@@ -34,7 +40,7 @@ class User extends React.Component{
                 <li><img className="tableitemimg" src={`../../${data.species}/${data.eimage}`} height="70px"></img></li>
                 <li>{data.name}</li>
                 <li>{data.species}</li>
-                <li>{data.bells}</li>
+                <li>{data.ebells}</li>
                 <li>{data.rarity}</li>
                 <li>{data.months}</li>
               </ul>

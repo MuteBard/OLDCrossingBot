@@ -4,7 +4,7 @@ CREATE TABLE animal(
   ida integer UNIQUE,
   species varchar,
   name varchar,
-  bells integer,
+  abells integer,
   months varchar,
   rarity integer,
   aimage varchar
@@ -15,7 +15,7 @@ CREATE TABLE ecosystem(
   ida integer UNIQUE,
   species varchar,
   name varchar,
-  bells integer,
+  ebells integer,
   months varchar,
   rarity integer,
   eimage varchar
@@ -30,7 +30,7 @@ CREATE TABLE viewer(
   nextlevel integer,
   totalexp integer,
   expnextlevel integer,
-  bells integer,
+  vbells integer,
   turnips integer,
   netexp integer,
   poleexp integer,

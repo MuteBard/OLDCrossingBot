@@ -90,6 +90,16 @@ a:hover   {
     margin-top: 1em;
 }
 
+.icon, .icon2{
+  height: 20px;
+  padding-bottom: 3px;
+  padding-left: 1px;
+}
+
+.icon2{
+  height: 30px;
+}
+
 .tableitem{
   display: flex;
   flex-wrap: wrap;

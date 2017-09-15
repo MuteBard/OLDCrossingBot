@@ -63,9 +63,9 @@ Database.prototype.setEcoSystem = function(cb){
       crossbase.getByMonth(recievedData => {
         recievedData.forEach(elem => {
           db.none(`
-              INSERT INTO ecosystem (ida ,species, name, bells, months, rarity, eimage)
+              INSERT INTO ecosystem (ida ,species, name, ebells, months, rarity, eimage)
               VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-              [elem.ida, elem.species, elem.name, elem.bells, elem.months, elem.rarity, elem.aimage])
+              [elem.ida, elem.species, elem.name, elem.abells, elem.months, elem.rarity, elem.aimage])
           })
       })
   })
@@ -74,7 +74,7 @@ Database.prototype.setEcoSystem = function(cb){
 
 Database.prototype.joinGame = function(person){
   db.none(`
-      INSERT INTO viewer (username, net, pole, level, nextlevel, totalexp, expnextlevel, bells, turnips, netexp, poleexp, vimage)
+      INSERT INTO viewer (username, net, pole, level, nextlevel, totalexp, expnextlevel, vbells, turnips, netexp, poleexp, vimage)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
       [person, 1, 1, 0, 1, 1000, 1414, 0, 0, 0, 0, null])
     .then(() => {
@@ -109,6 +109,7 @@ Database.prototype.addPocket = function(person, vid, rare, species){
       let newExp = toolEXP(rare)
       if(species === 'bug') db.none(`UPDATE viewer SET netexp = netexp + $1 WHERE username = $2`, [newExp, person])
       else db.none(`UPDATE viewer SET poleexp = poleexp + $1 WHERE username = $2`,[newExp, person])
+      console.log(data[itemIndex])
       return data[itemIndex]
   }).then(data => {
       db.none(`INSERT INTO pockets (vid, username, aid, record)
@@ -118,12 +119,10 @@ Database.prototype.addPocket = function(person, vid, rare, species){
   }).then((data) => {
       client.action(`mutebard`, `${person} you have caught a ${data.species}, the ${data.name}`)
       console.log(`${person} ${data.name} POCKETED`)
-        console.log("test4")
   }).catch(err => console.log(err))
 
   db.any(`SELECT netexp, poleexp FROM viewer WHERE username = $1` , [person])
     .then(exp => {
-      console.log("test11")
       level = (species === 'bug' ? toolLevelUp(exp[0].netexp) : toolLevelUp(exp[0].poleexp))
       if(species === 'bug') db.any(`UPDATE viewer SET net = $1 WHERE username = $2`,[level, person])
       else db.any(`UPDATE viewer SET pole = $1 WHERE username = $2`,[level,person])
@@ -143,14 +142,14 @@ Database.prototype.updateEXP = function(person, bells){
 Database.prototype.sellPocket = function(person){
   console.log(person)
   db.any(`
-    SELECT bells FROM viewer WHERE username = $1
+    SELECT vbells FROM viewer WHERE username = $1
     UNION ALL
-    SELECT SUM(ecosystem.bells) FROM pockets LEFT OUTER JOIN ecosystem ON ecosystem.ida = pockets.aid WHERE username = $1`, [person])
+    SELECT SUM(ecosystem.ebells) FROM pockets LEFT OUTER JOIN ecosystem ON ecosystem.ida = pockets.aid WHERE username = $1`, [person])
   .then(data => {
-      client.action(`mutebard`, `${person} you have gained ${data[1].bells} bells`)
-      var total = Number(data[0].bells) + Number(data[1].bells)
-      console.log(`${person} ${data[1].bells} GAINED`)
-      db.none(`UPDATE viewer SET bells = $1 WHERE username = $2`, [total, person])
+      client.action(`mutebard`, `${person} you have gained ${data[1].vbells} bells`)
+      var total = Number(data[0].vbells) + Number(data[1].vbells)
+      console.log(`${person} ${data[1].vbells} GAINED`)
+      db.none(`UPDATE viewer SET vbells = $1 WHERE username = $2`, [total, person])
       return total
     })
   .then((bells) => {
