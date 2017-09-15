@@ -63,9 +63,9 @@ Database.prototype.setEcoSystem = function(cb){
       crossbase.getByMonth(recievedData => {
         recievedData.forEach(elem => {
           db.none(`
-              INSERT INTO ecosystem (ida ,species, name, bells, months, rarity)
-              VALUES ($1,$2,$3,$4,$5,$6)`,
-              [elem.ida, elem.species, elem.name, elem.bells, elem.months, elem.rarity])
+              INSERT INTO ecosystem (ida ,species, name, bells, months, rarity, image)
+              VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+              [elem.ida, elem.species, elem.name, elem.bells, elem.months, elem.rarity, elem.image])
           })
       })
   })
