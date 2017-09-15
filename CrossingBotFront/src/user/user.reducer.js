@@ -5,7 +5,6 @@ const INITAL_STATE = {
 };
 
 export default function reducer(state = INITAL_STATE, action){
-
   if(action.type === "pocket"){
     let array = action.value
      let tempUsername = array[0].username
@@ -18,20 +17,5 @@ export default function reducer(state = INITAL_STATE, action){
       pocket : array
     });
   }
-
-  if (action.type === "set"){
-    let array = action.array
-    let id = action.id
-
-    for(let i = 0; i < array.length; i++){
-      if(array[i].username === id){
-        return Object.assign({}, state, {
-          viewer: array[i]
-        });
-      }
-    }
-  }
-
-
   return state
 }

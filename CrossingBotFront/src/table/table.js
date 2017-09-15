@@ -27,7 +27,7 @@ class Table extends React.Component{
           <div><a  href="https://www.twitch.tv/midnightfreeze"><img src="../../twitch.svg" height="45px"/></a></div>
         </div>
         <div className="tablecontainer">
-          <h1 className="title">CrossingBot Data on MidnightFreeze's room</h1>
+          <h1 className="title">CrossingBot Data on MidnightFreeze's Town</h1>
           <scan className="searchcontainer">
             <input className="search" placeholder="Enter a viewer's name" type="text" value={this.props.text} onChange={event => this.props.updateSearch(event.target.value)}/>
             <button
@@ -39,7 +39,7 @@ class Table extends React.Component{
           {this.props.users.map((person, idx) =>
             <Link className="links" key={idx} to={`/user:${person.id}`}>
               <ul className="tableitem">
-                <img className="tableitemimg" src={person.image} height="150px"></img>
+                <img className="tableitemimg" src={person.vimage} height="150px"></img>
                 <div className="tableitemdata">
                   <li>{person.username}</li>
                   <li>Turnips<br/>{person.turnips}</li>
