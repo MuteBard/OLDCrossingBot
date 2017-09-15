@@ -63,9 +63,9 @@ Database.prototype.setEcoSystem = function(cb){
       crossbase.getByMonth(recievedData => {
         recievedData.forEach(elem => {
           db.none(`
-              INSERT INTO ecosystem (ida ,species, name, bells, months, rarity, image)
+              INSERT INTO ecosystem (ida ,species, name, bells, months, rarity, eimage)
               VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-              [elem.ida, elem.species, elem.name, elem.bells, elem.months, elem.rarity, elem.image])
+              [elem.ida, elem.species, elem.name, elem.bells, elem.months, elem.rarity, elem.aimage])
           })
       })
   })
@@ -74,7 +74,7 @@ Database.prototype.setEcoSystem = function(cb){
 
 Database.prototype.joinGame = function(person){
   db.none(`
-      INSERT INTO viewer (username, net, pole, level, nextlevel, totalexp, expnextlevel, bells, turnips, netexp, poleexp, image)
+      INSERT INTO viewer (username, net, pole, level, nextlevel, totalexp, expnextlevel, bells, turnips, netexp, poleexp, vimage)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
       [person, 1, 1, 0, 1, 1000, 1414, 0, 0, 0, 0, null])
     .then(() => {
@@ -92,7 +92,7 @@ Database.prototype.joinGame = function(person){
       request(options2, (error, response, body) => {
         let info = JSON.parse(body)
         let avatar = info.data[0].profile_image_url
-        db.none(`UPDATE viewer SET image = $1 WHERE username = $2`,[avatar, person])
+        db.none(`UPDATE viewer SET vimage = $1 WHERE username = $2`,[avatar, person])
       })
   })
     .catch((err) =>{
@@ -102,7 +102,7 @@ Database.prototype.joinGame = function(person){
   })
 }
 
-Database.prototype.addPocket = function(person, rare, species){
+Database.prototype.addPocket = function(person, vid, rare, species){
   db.any(`SELECT * FROM ECOSYSTEM WHERE rarity = $1 AND species = $2`, [rare, species])
     .then(data => {
       var itemIndex = selectItem(data.length)
@@ -111,9 +111,9 @@ Database.prototype.addPocket = function(person, rare, species){
       else db.none(`UPDATE viewer SET poleexp = poleexp + $1 WHERE username = $2`,[newExp, person])
       return data[itemIndex]
   }).then(data => {
-      db.none(`INSERT INTO pockets (username, aid, record)
-            VALUES ($1, $2, LOCALTIMESTAMP)`,
-            [person, data.ida])
+      db.none(`INSERT INTO pockets (vid, username, aid, record)
+            VALUES ($1, $2, $3, LOCALTIMESTAMP)`,
+            [vid, person, data.ida])
       return data
   }).then((data) => {
       client.action(`mutebard`, `${person} you have caught a ${data.species}, the ${data.name}`)
@@ -246,7 +246,9 @@ client.on('chat', (channel, userstate, message, self) => {
     var person = userstate["display-name"]
     var rare = selectRarity()
     var species = selectSpecies(message)
-    crossbase.addPocket(person, rare, species)
+    db.any(`SELECT id FROM viewer WHERE username = $1`,[person])
+      .then(data => crossbase.addPocket(person,data[0].id,rare,species))
+
   }
   else if(message == "!sell-all"){
     crossbase.sellPocket(person)
@@ -268,12 +270,12 @@ app.post('/api/viewer', (req, resp, next) => {
 });
 
 app.post('/api/pocket/:id', (req, resp, next) =>{
-  let user = req.body.id
+  let id = req.body.id
   db.any(`SELECT * FROM
-            (SELECT * FROM pockets LEFT OUTER JOIN ecosystem ON ecosystem.ida = pockets.aid)x
-          WHERE username = $1`,[user])
-
-
+            (SELECT * FROM pockets AS p
+            LEFT OUTER JOIN ecosystem AS e ON e.ida = p.aid
+            LEFT OUTER JOIN viewer AS v ON v.username = p.username)x
+          WHERE vid = $1`,[id])
   .then(data => resp.json(data))
   .catch(next)
 })

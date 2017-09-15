@@ -37,7 +37,7 @@ class Table extends React.Component{
             </button>
           </scan>
           {this.props.users.map((person, idx) =>
-            <Link className="links" key={idx} to={`/user:${person.username}`}>
+            <Link className="links" key={idx} to={`/user:${person.id}`}>
               <ul className="tableitem">
                 <img className="tableitemimg" src={person.image} height="150px"></img>
                 <div className="tableitemdata">

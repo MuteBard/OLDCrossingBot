@@ -1,9 +1,24 @@
 const INITAL_STATE = {
-  viewer: {},
+  username: "",
+  image: "",
   pocket: []
 };
 
 export default function reducer(state = INITAL_STATE, action){
+
+  if(action.type === "pocket"){
+    let array = action.value
+     let tempUsername = array[0].username
+     let tempImage = array[0].vimage
+     console.log(array)
+
+    return Object.assign({}, state, {
+      username: tempUsername,
+      image: tempImage,
+      pocket : array
+    });
+  }
+
   if (action.type === "set"){
     let array = action.array
     let id = action.id
@@ -17,11 +32,6 @@ export default function reducer(state = INITAL_STATE, action){
     }
   }
 
-  else if(action.type === "pocket"){
-    return Object.assign({}, state, {
-      pocket: action.value
-    });
-  }
-  
+
   return state
 }

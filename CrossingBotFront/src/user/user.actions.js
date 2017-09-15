@@ -19,7 +19,8 @@ export function getPocket(identifier){
       method: 'post',
       dataType: 'JSON',
       contentType: 'application/json'
-    }).then(data => dispatch({
+    }).then(data =>
+      dispatch({
       type:'pocket',
       value: data
     }))

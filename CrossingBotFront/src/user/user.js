@@ -8,7 +8,6 @@ class User extends React.Component{
 
   componentDidMount(){
     let identifier = this.props.match.params.id.slice(1)
-    this.props.setUser(identifier,this.props.table.users)
     console.log(identifier)
     this.props.getPocket(identifier)
   };
@@ -18,8 +17,8 @@ class User extends React.Component{
       <div>
         <div className="pocketContainer">
           <div className="pocketHeader">
-            <div><img className="pocketImg" src={this.props.user.viewer.image} height="200px"></img></div>
-            <h2 className="pocketOwner">{this.props.user.viewer.username}'s pocket</h2>
+            <div><img className="pocketImg" src={this.props.image} height="200px"></img></div>
+            <h2 className="pocketOwner">{this.props.username}'s pocket</h2>
           </div>
           <div className="pocketBody">
             <ul className="pocketTitle">
@@ -30,9 +29,9 @@ class User extends React.Component{
               <li>Rarity</li>
               <li>Availibilty</li>
             </ul>
-            {this.props.user.pocket.map((data, idx) =>
+            {this.props.pocket.map((data, idx) =>
               <ul key={idx} className="pocketItem">
-                <li><img className="tableitemimg" src={`../../${data.species}/${data.image}`} height="70px"></img></li>
+                <li><img className="tableitemimg" src={`../../${data.species}/${data.eimage}`} height="70px"></img></li>
                 <li>{data.name}</li>
                 <li>{data.species}</li>
                 <li>{data.bells}</li>
@@ -48,7 +47,7 @@ class User extends React.Component{
 }
 
 const UserContainer = ReactRedux.connect(
-  state => state,
+  state => state.user,
   actions
 )(User);
 

@@ -7,7 +7,7 @@ CREATE TABLE animal(
   bells integer,
   months varchar,
   rarity integer,
-  image varchar
+  aimage varchar
 );
 DROP TABLE ecosystem CASCADE;
 CREATE TABLE ecosystem(
@@ -18,7 +18,7 @@ CREATE TABLE ecosystem(
   bells integer,
   months varchar,
   rarity integer,
-  image varchar
+  eimage varchar
 );
 DROP TABLE IF EXISTS viewer CASCADE;
 CREATE TABLE viewer(
@@ -34,16 +34,19 @@ CREATE TABLE viewer(
   turnips integer,
   netexp integer,
   poleexp integer,
-  image varchar
+  vimage varchar
 
 );
 DROP TABLE IF EXISTS pockets CASCADE;
 CREATE TABLE pockets(
   id serial primary key,
+  vid integer,
   username varchar,
   aid integer references animal(ida),
   record timestamp with time zone
 );
+
+SET timezone TO 'US/Eastern';
 
 INSERT INTO animal VALUES
   (DEFAULT,0,'bug','Common Butterfly',90,'CDEFI',2,'Common_Butterfly_HHD_Icon.png'),
