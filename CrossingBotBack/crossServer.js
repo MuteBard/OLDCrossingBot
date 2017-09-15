@@ -111,19 +111,19 @@ Database.prototype.addPocket = function(person, rare, species){
       else db.none(`UPDATE viewer SET poleexp = poleexp + $1 WHERE username = $2`,[newExp, person])
       return data[itemIndex]
   }).then(data => {
-      console.log(data)
       db.none(`INSERT INTO pockets (username, aid, record)
             VALUES ($1, $2, LOCALTIMESTAMP)`,
             [person, data.ida])
       return data
   }).then((data) => {
-      console.log(data)
       client.action(`mutebard`, `${person} you have caught a ${data.species}, the ${data.name}`)
       console.log(`${person} ${data.name} POCKETED`)
+        console.log("test4")
   }).catch(err => console.log(err))
 
   db.any(`SELECT netexp, poleexp FROM viewer WHERE username = $1` , [person])
     .then(exp => {
+      console.log("test11")
       level = (species === 'bug' ? toolLevelUp(exp[0].netexp) : toolLevelUp(exp[0].poleexp))
       if(species === 'bug') db.any(`UPDATE viewer SET net = $1 WHERE username = $2`,[level, person])
       else db.any(`UPDATE viewer SET pole = $1 WHERE username = $2`,[level,person])

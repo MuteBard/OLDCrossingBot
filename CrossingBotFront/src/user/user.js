@@ -18,7 +18,7 @@ class User extends React.Component{
       <div>
         <div className="pocketContainer">
           <div className="pocketHeader">
-            <div><img className="tableitemimg" src={this.props.user.viewer.image} height="200px"></img></div>
+            <div><img className="pocketImg" src={this.props.user.viewer.image} height="200px"></img></div>
             <h2 className="pocketOwner">{this.props.user.viewer.username}'s pocket</h2>
           </div>
           <div className="pocketBody">
@@ -32,7 +32,7 @@ class User extends React.Component{
             </ul>
             {this.props.user.pocket.map((data, idx) =>
               <ul key={idx} className="pocketItem">
-                <li><img className="tableitemimg" src={data.species === 'bug' ? '../../bug.ico' : '../../fish.png'} height= {data.species === 'bug' ? "50px" : "70px"}></img></li>
+                <li><img className="tableitemimg" src={`../../${data.species}/${data.image}`} height="70px"></img></li>
                 <li>{data.name}</li>
                 <li>{data.species}</li>
                 <li>{data.bells}</li>

@@ -44,7 +44,7 @@ class Table extends React.Component{
                   <li>{person.username}</li>
                   <li>Turnips<br/>{person.turnips}</li>
                   <li>Bells<br/>{person.bells}</li>
-                  <li>Level<br/>{person.level}</li>
+                  <li>Level<br/>{person.level+1}</li>
                   <li>Bugnet<br/>{this.toolRank(person.net)}</li>
                   <li>FishingPole<br/>{this.toolRank(person.pole)}</li>
                 </div>
