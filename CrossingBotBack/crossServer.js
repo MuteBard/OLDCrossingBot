@@ -1,3 +1,34 @@
+const express = require('express');
+const cors = require('cors');
+const Promise = require('bluebird');
+const request = require('request');
+const pgp = require('pg-promise')({
+  promiseLib: Promise
+});
+const bodyParser = require('body-parser');
+const app = express();
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+
+const tmi = require('tmi.js');
+const secret = require('./secret/sealed');
+const db = pgp(secret)
+var options = {
+  options : {
+    debug : true
+  },
+  connection: {
+    cluster: "aws",
+    reconnect: true
+  },
+  identity: {
+    username: "CrossingBot",
+    password: secret.oauth
+  },
+  channels: ["MidnightFreeze"]
+};
+
 var values = {
   a:{
     max: 21,
@@ -16,7 +47,6 @@ var values = {
     min: 35
   }
 }
-
 function randomChanges(){
   let array = Array(14).fill(null)
   return array.map(elem => {
@@ -24,8 +54,31 @@ function randomChanges(){
     return change
   })
 }
-
-function stalkChange(price, letter){
+function choosePattern(){
+  let arr
+  let max
+  let choosePattern = Math.floor((Math.random() * 4 + 1))
+  if(choosePattern == 1){
+    arr = randomChanges()
+    max = 101
+  }
+  else if (choosePattern == 2){
+    arr = Array(14).fill('b')
+    max = 200
+  }
+  else if (choosePattern == 3){
+    arr = ['b','b','a','a','b','b','a','a','b','b','a','a','b','b']
+    max = 500
+  }
+  else if (choosePattern == 4){
+   arr = ['b','d','c','c','b','d','c','c','b','d','c','c','b','b']
+   max = 600
+ }
+  db.any(`INSERT INTO stalkstats (tbells, net, session, pattern, max, changetime)
+         VALUES ($1, NULL, $2, $3, $4, LOCALTIMESTAMP)`,
+         [100, 0,'-'+(arr).join(""), max])
+}
+function stalkChange(price, letter, values){
   let num
   if(letter == 'a')      num = values.a
   else if(letter == 'b') num = values.b
@@ -35,59 +88,31 @@ function stalkChange(price, letter){
   let result = (letter == 'a' || letter == 'c' ? (price + adj) : (price - adj))
   return result
 }
-
-function choosePattern(){
-  let array
-  let choosePattern = (Math.floor((Math.random() * 4 + 1)
-  if(choosePattern == 1)       array = randomChanges()
-  else if (choosePattern == 1) array = Array(14).fill('b')
-  else if (choosePattern == 2) array = ['b','b','a','a','b','b','a','a','b','b','a','a','b','b']
-  else if (choosePattern == 3) array = ['b','d','c','c','b','d','c','c','b','d','c','c','b','b']
-  return array
+function stalkMarket(){
+  db.any(`SELECT * FROM stalkstats WHERE id = (SELECT MAX(id) FROM stalkstats)`)
+    .then(data => {
+      if(data[0] == undefined) choosePattern()
+      else{
+        let turnipCost = data[0].tbells
+        let nextSession = data[0].session + 1
+        let pattern = data[0].pattern
+        let letter = pattern.charAt(nextSession)
+        let newTurnipCost = stalkChange(turnipCost, letter, values)
+        newTurnipCost = (newTurnipCost >= data[0].max ? (data[0].max) : (newTurnipCost <= 10 ? 10 : newTurnipCost))
+        let net = (newTurnipCost - turnipCost)
+        if(nextSession >= 14) choosePattern()
+        else{
+          db.any(`INSERT INTO stalkstats (tbells, net, session, pattern, max, changetime)
+                  VALUES ($1, $2, $3, $4, $5, LOCALTIMESTAMP)`,
+                  [newTurnipCost, net, nextSession, pattern, data[0].max])
+        }
+     }
+  })
 }
 
-var pattern = choosePattern()
-
-function stalkMarket(t, p, v){
-
-stalkMarket(turnipCost, pattern, values)
+stalkMarket()
 
 
-  stalkChange(price, letter)
-}
-
-
-
-// const express = require('express');
-// const cors = require('cors');
-// const Promise = require('bluebird');
-// const request = require('request');
-// const pgp = require('pg-promise')({
-//   promiseLib: Promise
-// });
-// const bodyParser = require('body-parser');
-// const app = express();
-// app.use(cors());
-// app.use(bodyParser.json());
-// app.use(bodyParser.urlencoded({ extended: false }));
-//
-// const tmi = require('tmi.js');
-// const secret = require('./secret/sealed');
-// const db = pgp(secret)
-// var options = {
-//   options : {
-//     debug : true
-//   },
-//   connection: {
-//     cluster: "aws",
-//     reconnect: true
-//   },
-//   identity: {
-//     username: "CrossingBot",
-//     password: secret.oauth
-//   },
-//   channels: ["MidnightFreeze"]
-// };
 //
 //
 // var client = new tmi.client(options);
@@ -340,47 +365,47 @@ stalkMarket(turnipCost, pattern, values)
 // })
 //
 // app.listen(4000, () => console.log('Listening on 4000'))
-//
-// // // //Whispers
-// // // client2.connect().then((data) => {
-// // //     client2.whisper("MuteBard", "I am Alive Too");
-// // // }).catch((err) => {
-// // //     console.log(err);
-// // // });
-// // //
-// // // Send a whisper to your bot to trigger this event..
-// // // client2.on("whisper", function (user, message) {
-// // //     console.log(user);
-// // //     console.log(message);
-// // // });
+
+// // //Whispers
+// // client2.connect().then((data) => {
+// //     client2.whisper("MuteBard", "I am Alive Too");
+// // }).catch((err) => {
+// //     console.log(err);
+// // });
 // //
-// // // LEVEL : 1  EXP : 1414
-// // // LEVEL : 2  EXP : 2000
-// // // LEVEL : 3  EXP : 2828
-// // // LEVEL : 4  EXP : 4000
-// // // LEVEL : 5  EXP : 5656
-// // // LEVEL : 6  EXP : 8000
-// // // LEVEL : 7  EXP : 11313
-// // // LEVEL : 8  EXP : 16000
-// // // LEVEL : 9  EXP : 22627
-// // // LEVEL : 10  EXP : 32000
-// // // LEVEL : 11  EXP : 45254
-// // // LEVEL : 12  EXP : 64000
-// // // LEVEL : 13  EXP : 90509
-// // // LEVEL : 14  EXP : 128000
-// // // LEVEL : 15  EXP : 181019
-// // // LEVEL : 16  EXP : 256000
-// // // LEVEL : 17  EXP : 362038
-// // // LEVEL : 18  EXP : 512000
-// // // LEVEL : 19  EXP : 724077
-// // // LEVEL : 20  EXP : 1024000
-// // // LEVEL : 21  EXP : 1448154
-// // // LEVEL : 22  EXP : 2048000
-// // // LEVEL : 23  EXP : 2896309
-// // // LEVEL : 24  EXP : 4096000
-// // // LEVEL : 25  EXP : 5792618
-// // // LEVEL : 26  EXP : 8192000
-// // // LEVEL : 27  EXP : 11585237
-// // // LEVEL : 28  EXP : 16384000
-// // // LEVEL : 29  EXP : 23170475
-// // // LEVEL : 30  EXP : 32768000
+// // Send a whisper to your bot to trigger this event..
+// // client2.on("whisper", function (user, message) {
+// //     console.log(user);
+// //     console.log(message);
+// // });
+//
+// // LEVEL : 1  EXP : 1414
+// // LEVEL : 2  EXP : 2000
+// // LEVEL : 3  EXP : 2828
+// // LEVEL : 4  EXP : 4000
+// // LEVEL : 5  EXP : 5656
+// // LEVEL : 6  EXP : 8000
+// // LEVEL : 7  EXP : 11313
+// // LEVEL : 8  EXP : 16000
+// // LEVEL : 9  EXP : 22627
+// // LEVEL : 10  EXP : 32000
+// // LEVEL : 11  EXP : 45254
+// // LEVEL : 12  EXP : 64000
+// // LEVEL : 13  EXP : 90509
+// // LEVEL : 14  EXP : 128000
+// // LEVEL : 15  EXP : 181019
+// // LEVEL : 16  EXP : 256000
+// // LEVEL : 17  EXP : 362038
+// // LEVEL : 18  EXP : 512000
+// // LEVEL : 19  EXP : 724077
+// // LEVEL : 20  EXP : 1024000
+// // LEVEL : 21  EXP : 1448154
+// // LEVEL : 22  EXP : 2048000
+// // LEVEL : 23  EXP : 2896309
+// // LEVEL : 24  EXP : 4096000
+// // LEVEL : 25  EXP : 5792618
+// // LEVEL : 26  EXP : 8192000
+// // LEVEL : 27  EXP : 11585237
+// // LEVEL : 28  EXP : 16384000
+// // LEVEL : 29  EXP : 23170475
+// // LEVEL : 30  EXP : 32768000

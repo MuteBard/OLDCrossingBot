@@ -46,7 +46,19 @@ CREATE TABLE pockets(
   record timestamp with time zone
 );
 
+DROP TABLE IF EXISTS stalkstats CASCADE;
+CREATE TABLE stalkstats(
+  id serial primary key,
+  tbells integer,
+  net integer,
+  session integer,
+  pattern varchar,
+  max integer,
+  changetime timestamp with time zone
+);
+
 SET timezone TO 'US/Eastern';
+
 
 INSERT INTO animal VALUES
   (DEFAULT,0,'bug','Common Butterfly',90,'CDEFI',2,'Common_Butterfly_HHD_Icon.png'),
