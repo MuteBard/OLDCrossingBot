@@ -26,11 +26,11 @@ var options = {
     username: "CrossingBot",
     password: secret.oauth
   },
-  channels: ["MidnightFreeze"]
+  channels: ["MidnightFreeze","MuteBard"]
 };
-var client = new tmi.client(options);
-var client2 = new tmi.client(options);
-client.connect()
+var publ = new tmi.client(options);
+var priv = new tmi.client(options);
+publ.connect()
 
 function Database(){
   this.monthNumber = -1;
@@ -76,7 +76,7 @@ Database.prototype.joinGame = function(person){
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
       [person, 1, 1, 0, 1, 1000, 1414, 0, 0, 0, 0, null])
     .then(() => {
-      client.action(`mutebard`, `Welcome ${person}! you have joined the town VoHiYo  `)
+      whispering(person,`Welcome ${person}! you have joined the town VoHiYo`)
       console.log(`${person} ADDED`)
   })
   .then(() => {
@@ -95,8 +95,8 @@ Database.prototype.joinGame = function(person){
   })
     .catch((err) =>{
       console.log(err)
-      client.action(`mutebard`, `you are already in the town ${person}!`)
-      console.log(`${person} DUPLICATE REJECTED`)
+      whispering(person,`you are already in the town ${person}!`)
+      // console.log(`${person} DUPLICATE REJECTED`)
   })
 }
 
@@ -107,7 +107,6 @@ Database.prototype.addPocket = function(person, vid, rare, species){
       let newExp = toolEXP(rare)
       if(species === 'bug') db.none(`UPDATE viewer SET netexp = netexp + $1 WHERE username = $2`, [newExp, person])
       else db.none(`UPDATE viewer SET poleexp = poleexp + $1 WHERE username = $2`,[newExp, person])
-      console.log(data[itemIndex])
       return data[itemIndex]
   }).then(data => {
       db.none(`INSERT INTO pockets (vid, username, aid, record)
@@ -115,8 +114,7 @@ Database.prototype.addPocket = function(person, vid, rare, species){
             [vid, person, data.ida])
       return data
   }).then((data) => {
-      client.action(`mutebard`, `${person} you have caught a ${data.species}, the ${data.name}`)
-      console.log(`${person} ${data.name} POCKETED`)
+      whispering(person,`${person} you have caught a ${data.species}, the ${data.name}`)
   }).catch(err => console.log(err))
 
   db.any(`SELECT netexp, poleexp FROM viewer WHERE username = $1` , [person])
@@ -144,7 +142,7 @@ Database.prototype.sellPocket = function(person){
     UNION ALL
     SELECT SUM(ecosystem.ebells) FROM pockets LEFT OUTER JOIN ecosystem ON ecosystem.ida = pockets.aid WHERE username = $1`, [person])
   .then(data => {
-      client.action(`mutebard`, `${person} you have gained ${data[1].vbells} bells`)
+      whispering(person,`${person} you have gained ${data[1].vbells} bells`)
       var total = Number(data[0].vbells) + Number(data[1].vbells)
       console.log(`${person} ${data[1].vbells} GAINED`)
       db.none(`UPDATE viewer SET vbells = $1 WHERE username = $2`, [total, person])
@@ -157,6 +155,56 @@ Database.prototype.sellPocket = function(person){
   .then(() => db.none(`DELETE FROM pockets WHERE username = $1`, [person]))
   .catch(err => console.log(err))
 };
+
+Database.prototype.buyTurnips = function(person, n ){
+  db.any(`SELECT vbells FROM viewer WHERE username = $1`, [person])
+    .then(data => {
+      bells = data[0].vbells
+      return bells
+    })
+    .then(bells => {
+      return[bells,db.any(`SELECT tbells FROM stalkstats WHERE id = (SELECT MAX(id) FROM stalkstats)`)]
+    })
+    .spread((bells,data) => {
+      let turnip = data[0].tbells
+      max_n = bells / turnip
+      if (max_n < n) n = max_n
+      db.any(`UPDATE viewer SET vbells = vbells - $1 WHERE username = $2`, [(n * turnip), person])
+      return turnip
+    })
+    .then(t => {
+      db.any(`UPDATE viewer SET turnips = $1 WHERE username = $2`, [n, person])
+      return t
+    })
+    .then(t => {
+       whispering(person,`${person} Bought ${n} turnips for ${n*t}.`)
+    })
+}
+
+Database.prototype.sellTurnips = function(person, n){
+  db.any(`SELECT vbells,turnips FROM viewer WHERE username = $1`, [person])
+    .then(data => {
+      bells = data[0].vbells
+      turnips_owned = data[0].turnips
+      return [bells, turnips_owned]
+    })
+    .then((bells, turnips_owned) => {
+      return[bells,turnips_owned,db.any(`SELECT tbells FROM stalkstats WHERE id = (SELECT MAX(id) FROM stalkstats)`)]
+    })
+    .spread((bells, turnips_owned, data) => {
+      let turnip_price = data[0].tbells
+      if (n > turnips_owned) n = turnips_owned
+      db.any(`UPDATE viewer SET vbells = vbells + $1 WHERE username = $2`, [(n * turnip_price), person])
+      return turnip_price
+    })
+    .then((t) => {
+      db.any(`UPDATE viewer SET turnips = 0 WHERE username = $1`, [person])
+      return t
+    })
+    .then((t) => {
+        whispering(person,`${person} Bought ${n} turnips for ${n*t}`)
+    })
+}
 
 function selectSpecies(message){
   if(message.slice(5,6) == "b") return 'bug'
@@ -205,7 +253,6 @@ function expCrunch(bells, totalExp){
   }
 }
 
-
 //update to total experiences
 function expGain(bells){
   exp = bells / 10
@@ -224,6 +271,15 @@ function ExpRemain(level, levelNext){
 function expToLevel(exp){
   var level = Math.log2(Math.pow((exp/ 1000),2))
   return level
+}
+
+function getNumber(str,num){
+  let value = 0
+  let string = str.slice(num).trim()
+  if (!isNaN(string)){
+    value = Number(string)
+  }
+  return value
 }
 
 var values = {
@@ -264,11 +320,11 @@ function choosePattern(){
     max = 101
   }
   else if (choosePattern == 3){
-    arr = ['b','b','a','a','b','b','a','a','b','b','a','c','b','d']
+    arr = ['b','b','a','c','b','b','a','c','b','b','a','c','b','d']
     max = 500
   }
   else if (choosePattern == 4){
-   arr = ['b','d','c','c','b','d','c','c','b','d','c','c','b','b']
+   arr = ['b','d','c','c','c','d','c','c','c','d','c','c','c','d']
    max = 600
  }
   db.any(`INSERT INTO stalkstats (tbells, net, session, pattern, max, changetime)
@@ -312,34 +368,79 @@ function stalkMarket(){
 function initMarket(){
   setInterval(() => {
     stalkMarket()
-  }, 5000);
+  }, 10000);
 }
-// initMarket()
+// 43200000
+initMarket()
 
+function whispering(viewer, message){
+  priv.connect().then(() => {
+        priv.whisper(viewer, message);
+    }).catch((err) => {
+        console.log(err);
+    });
+}
 
 crossbase = new Database()
-crossbase.setMonth(9); //Jan = 0, Feb = 1 ..... Dec = 11
+crossbase.setMonth(9); //use date time to set date
 crossbase.setEcoSystem(function cb(recievedData){console.log(recievedData)});
 
-client.on('chat', (channel, userstate, message, self) => {
-  var person = userstate["display-name"]
-  // console.log(`${person} PONG`)
-  // client.action(`mutebard`, `${person} PONG`)
 
+publ.on('chat', (channel, userstate, message, self) => {
+  var viewer = userstate["display-name"]
+  var streamer = channel.slice(1)
 
-  if(message == "!start"){
-    crossbase.joinGame(person)
+  if(message == "!help"){
+    whispering(viewer,`Hey ${viewer} for more information on how CrossingBot works, visit http://localhost:3000/`)
+  }
+
+  else if(message == "!start"){
+    crossbase.joinGame(viewer)
   }
   else if(message == "!use-bugnet" || message == "!use-fishpole"){
-    var person = userstate["display-name"]
     var rare = selectRarity()
     var species = selectSpecies(message)
-    db.any(`SELECT id FROM viewer WHERE username = $1`,[person])
-      .then(data => crossbase.addPocket(person,data[0].id,rare,species))
-
+    db.any(`SELECT id FROM viewer WHERE username = $1`,[viewer])
+      .then(data => crossbase.addPocket(viewer,data[0].id,rare,species))
   }
+  else if(message == "!show-all"){
+    db.any(`SELECT name FROM
+                (SELECT * FROM pockets AS p
+                LEFT OUTER JOIN ecosystem AS e
+                ON e.ida = p.aid)x
+             WHERE username = $1`, [viewer])
+      .then(data =>{
+          let bugs = (data.map(elem => elem.name)).join(", ")
+          whispering(viewer,bugs)
+        })
+  }
+
   else if(message == "!sell-all"){
-    crossbase.sellPocket(person)
+    crossbase.sellPocket(viewer)
+  }
+
+  else if(message == "!mybells"){
+    db.any(`SELECT vbells FROM viewer WHERE username = $1`,[viewer])
+      .then(data => whispering(viewer,`${viewer} you have ${data[0].vbells} bells`))
+  }
+
+  else if(message == "!myturnips"){
+    db.any(`SELECT turnips FROM viewer WHERE username = $1`,[viewer])
+      .then(data => whispering(viewer,`${viewer} you have ${data[0].turnips} turnips`))
+  }
+
+  else if(message == "!price-t"){
+    db.any(`SELECT tbells FROM stalkstats WHERE id = (SELECT MAX(id) FROM stalkstats)`)
+      .then(data => whispering(viewer,`${viewer} the market price for turnips are ${data[0].tbells} bells`))
+  }
+  else if(message.includes("!buy-t")){
+    let num = getNumber(message,6)
+    crossbase.buyTurnips(viewer, num)
+  }
+
+  else if(message.includes("!sell-t")){
+    let num = getNumber(message,7)
+    crossbase.sellTurnips(viewer, num)
   }
 });
 
@@ -364,25 +465,21 @@ app.post('/api/pocket/:id', (req, resp, next) =>{
             LEFT OUTER JOIN ecosystem AS e ON e.ida = p.aid
             LEFT OUTER JOIN viewer AS v ON v.username = p.username)x
           WHERE vid = $1`,[id])
-  .then(data => resp.json(data))
+  .then(data =>{
+    console.log(data)
+    resp.json(data)
+  })
   .catch(next)
+})
+
+app.get('/api/stalks', (req, resp, next) => {
+  db.any(`SELECT * FROM stalkstats ORDER BY id DESC LIMIT 14`)
+    .then(data => resp.json(data))
+    .catch(next)
 })
 
 app.listen(4000, () => console.log('Listening on 4000'))
 
-// // //Whispers
-// // client2.connect().then((data) => {
-// //     client2.whisper("MuteBard", "I am Alive Too");
-// // }).catch((err) => {
-// //     console.log(err);
-// // });
-// //
-// // Send a whisper to your bot to trigger this event..
-// // client2.on("whisper", function (user, message) {
-// //     console.log(user);
-// //     console.log(message);
-// // });
-//
 // // LEVEL : 1  EXP : 1414
 // // LEVEL : 2  EXP : 2000
 // // LEVEL : 3  EXP : 2828

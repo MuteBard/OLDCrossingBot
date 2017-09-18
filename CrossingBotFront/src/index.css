@@ -288,7 +288,7 @@ a:hover   {
   /*border: 2px solid cyan;*/
   display: flex;
   list-style: none;
-  padding : 1em 1.5em;
+  padding : 0.5em .5em;
   width : 50%;
   text-align: center;
   background-color: #48c258;
@@ -317,7 +317,7 @@ a:hover   {
 
 .pocketItem{
   display: flex;
-  padding : 1em 1.5em;
+  padding : 0.5em .5em;
   /*border : 2px solid green;*/
   flex-direction: row;
   width : 50%;
@@ -334,5 +334,15 @@ a:hover   {
   /*border: 2px solid lime;*/
   /*display: flex;*/
   list-style: none;
-  padding : 1em 1.5em;
+  padding : 0.5em .5em;
+}
+
+
+/*.elemImage{
+  padding: 2px;
+}*/
+
+.elemOccur{
+  font-weight: bold;
+  font-size: 1.5em;
 }

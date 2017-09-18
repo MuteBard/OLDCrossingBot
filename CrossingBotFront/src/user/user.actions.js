@@ -26,3 +26,14 @@ export function getPocket(identifier){
   }
   return asyncAction;
 }
+
+export function getStalks() {
+  let asyncAction = function(dispatch) {
+    $.get(`${BASEURL}/api/stalks/`)
+     .then(data => dispatch({
+        type: 'stalk',
+        value: data
+     }));
+  }
+  return asyncAction;
+}
